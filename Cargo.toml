@@ -1,0 +1,28 @@
+[package]
+name = "GitLit"
+version = "0.1.0"
+edition = "2024"
+authors = ["adam-cakrda <cakrda@outlook.cz>"]
+license = "MIT"
+repository = "https://github.com/adam-cakrda/gitlit"
+description = "A simple github alternative written in rust"
+keywords = ["git", "http", "backend", "server", "github"]
+readme = "README.md"
+homepage = "https://github.com/adam-cakrda/gitlit"
+
+[dependencies]
+maud = { version = "0.27.0", features = ["actix-web"] }
+git-http-backend = { git = "https://github.com/adam-cakrda/git-http-backend.git" }
+actix-web = "4.11.0"
+clap = { version = "4.5.43", features = ["derive"] }
+tokio = "1.47.1"
+tracing-subscriber = "0.3.19"
+async-trait = "0.1.88"
+log = "0.4.27"
+tracing = "0.1.41"
+http-auth-basic = "0.3.5"
+sqlx = "0.8.6"
+thiserror = "2.0.12"
+time = "0.3.41"
+uuid = { version = "1.17.0", features = ["v4"] }
+rand = "0.9.2"
