@@ -1,7 +1,10 @@
 mod git;
 mod auth;
+mod models;
+mod db;
 
 use crate::git::*;
+use crate::db::Database;
 
 use actix_web::{web, App, HttpServer};
 use git_http_backend::actix::handler::ActixGitHttp;
@@ -24,6 +27,9 @@ pub async fn main() -> io::Result<()> {
         fs::create_dir_all(root.clone())?;
     }
 
+    let db = Database::init().await;
+    let db_data = web::Data::new(db);
+
     let addr =  String::from("localhost");
     let port = 8080;
 
@@ -40,7 +46,7 @@ pub async fn main() -> io::Result<()> {
     let bind_addr = format!("{}:{}", addr.clone(), port);
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(auth.clone()))
+            .app_data(db_data.clone())
             .wrap(actix_web::middleware::Logger::default())
             .configure(|x| actix_git_router::<WithAuth>(x))
     })
