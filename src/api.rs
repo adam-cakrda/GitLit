@@ -49,6 +49,16 @@ fn to_http_error<E: std::fmt::Display>(e: E) -> HttpResponse {
     HttpResponse::InternalServerError().json(error_message(&e.to_string()))
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/login",
+    request_body = LoginRequest,
+    responses(
+        (status = 200, description = "Logged in successfully", body = LoginResponse),
+        (status = 401, description = "Invalid credentials", body = ErrorResponse)
+    ),
+    tag = "auth"
+)]
 #[post("/api/v1/login")]
 async fn login(db: web::Data<Database>, payload: web::Json<LoginRequest>) -> impl Responder {
     match auth::login(&db, payload.login.clone(), payload.password.clone()).await {
@@ -60,6 +70,16 @@ async fn login(db: web::Data<Database>, payload: web::Json<LoginRequest>) -> imp
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/logout",
+    security(("bearerAuth" = [])),
+    responses(
+        (status = 200, description = "Logged out", body = OkResponse),
+        (status = 401, description = "Unauthorized")
+    ),
+    tag = "auth"
+)]
 #[post("/api/v1/logout")]
 async fn logout(db: web::Data<Database>, req: HttpRequest) -> impl Responder {
     let token = match bearer_token(&req) {
@@ -79,6 +99,16 @@ async fn logout(db: web::Data<Database>, req: HttpRequest) -> impl Responder {
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = 201, description = "User registered", body = OkResponse),
+        (status = 409, description = "Username or email already exists")
+    ),
+    tag = "auth"
+)]
 #[post("/api/v1/register")]
 async fn register(db: web::Data<Database>, payload: web::Json<RegisterRequest>) -> impl Responder {
     match auth::register(
@@ -97,6 +127,19 @@ async fn register(db: web::Data<Database>, payload: web::Json<RegisterRequest>) 
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/api/v1/create",
+    security(("bearerAuth" = [])),
+    request_body = CreateRepoRequest,
+    responses(
+        (status = 201, description = "Repository created", body = Repository),
+        (status = 400, description = "Invalid request"),
+        (status = 401, description = "Unauthorized"),
+        (status = 409, description = "Already exists")
+    ),
+    tag = "repos"
+)]
 #[post("/api/v1/create")]
 async fn create_repo(
     db: web::Data<Database>,
@@ -153,6 +196,19 @@ async fn create_repo(
     HttpResponse::Created().json(repo_doc)
 }
 
+#[utoipa::path(
+    delete,
+    path = "/api/v1/delete",
+    security(("bearerAuth" = [])),
+    params(DeleteQuery),
+    responses(
+        (status = 200, description = "Repository deleted", body = OkResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found")
+    ),
+    tag = "repos"
+)]
 #[delete("/api/v1/delete")]
 async fn delete_repo(
     db: web::Data<Database>,
@@ -191,6 +247,15 @@ async fn delete_repo(
 }
 
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/repos",
+    params(ReposQuery),
+    responses(
+        (status = 200, description = "List repositories", body = [Repository])
+    ),
+    tag = "repos"
+)]
 #[get("/api/v1/repos")]
 async fn list_repos(db: web::Data<Database>, req: HttpRequest, query: web::Query<ReposQuery>) -> impl Responder {
     let owner_user_id: Option<ObjectId> = if let Some(owner_username) = &query.owner {
@@ -263,6 +328,18 @@ async fn list_repos(db: web::Data<Database>, req: HttpRequest, query: web::Query
     HttpResponse::Ok().json(repos)
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/branches",
+    params(BranchesQuery),
+    responses(
+        (status = 200, description = "List branches", body = BranchesResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found")
+    ),
+    tag = "git"
+)]
 #[get("/api/v1/branches")]
 async fn branches(db: web::Data<Database>, req: HttpRequest, query: web::Query<BranchesQuery>) -> impl Responder {
     let repo = match repo_by_id(&db, &query.id).await {
@@ -287,6 +364,18 @@ async fn branches(db: web::Data<Database>, req: HttpRequest, query: web::Query<B
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/content",
+    params(ContentQuery),
+    responses(
+        (status = 200, description = "Get tree or blob content", body = ContentResponse),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found")
+    ),
+    tag = "git"
+)]
 #[get("/api/v1/content")]
 async fn content(
     db: web::Data<Database>,
@@ -331,6 +420,19 @@ async fn content(
     }
 }
 
+#[utoipa::path(
+    get,
+    path = "/api/v1/commits",
+    params(CommitsQuery),
+    responses(
+        (status = 200, description = "List commits", body = [CommitInfo]),
+        (status = 400, description = "Invalid branch or revspec"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found")
+    ),
+    tag = "git"
+)]
 #[get("/api/v1/commits")]
 async fn commits(
     db: web::Data<Database>,

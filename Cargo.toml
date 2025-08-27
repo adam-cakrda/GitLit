@@ -32,3 +32,6 @@ git2 = "0.20.2"
 serde_json = "1.0.142"
 base64 = "0.22.1"
 futures-util = "0.3.31"
+utoipa = "5.4.0"
+utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
+

@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, utoipa::ToSchema)]
 pub enum EntryKind {
     Blob,
     Tree,
@@ -8,7 +8,7 @@ pub enum EntryKind {
     Other(String),
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct TreeEntry {
     pub mode: String,
     pub kind: EntryKind,
@@ -17,7 +17,7 @@ pub struct TreeEntry {
     pub path: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct CommitInfo {
     pub hash: String,
     pub author_name: String,
@@ -26,7 +26,7 @@ pub struct CommitInfo {
     pub subject: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct Branch {
     pub name: String,
     pub oid: String,

@@ -5,9 +5,9 @@ use tracing;
 use std::fs;
 use http_auth_basic::Credentials;
 use crate::db::Database;
-use crate::auth::auth as auth_check;
 use crate::repo::repo_path;
 use mongodb::bson::doc;
+use bcrypt::verify;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -31,6 +31,7 @@ impl GitConfig for WithAuth {
     async fn rewrite(&self, original_path: String) -> PathBuf {
         let trimmed = original_path.trim_start_matches('/');
         let segments: Vec<&str> = trimmed.split('/').collect();
+        tracing::info!("rewrite: original path: {:?}", original_path);
 
         if segments.len() < 2 {
             tracing::warn!("rewrite: unexpected path '{}'", original_path);
@@ -65,27 +66,52 @@ impl GitConfig for WithAuth {
             PathBuf::from("./repos".to_string() + &original_path)
         };
 
+        tracing::info!("rewrite: resolved path: {:?}", resolved_path);
+
         fs::canonicalize(&resolved_path).unwrap_or(resolved_path)
     }
 
     async fn authenticate(&self, auth: AuthInput) -> Result<(), ()> {
         if let Some(h) = auth.authorization {
             if let Ok(credentials) = Credentials::from_header(h.clone()) {
-                let token = credentials.password;
-                tracing::debug!("Authenticating with Basic credentials (password as token), user_id={}", credentials.user_id);
-                return match auth_check(&self.db, token).await {
-                    Ok(_) => Ok(()),
-                    Err(e) => {
-                        tracing::warn!("Basic auth failed: {}", e);
+                let login = credentials.user_id;
+                let password = credentials.password;
+                tracing::info!("Authenticating with Basic credentials (username/password), login={}", login);
+
+                match self.db.find_user_by_login(&login).await {
+                    Ok(Some(user)) => {
+                        match verify(password, &user.password) {
+                            Ok(true) => {
+                                tracing::debug!("Authentication successful for user '{}'", login);
+                                Ok(())
+                            }
+                            Ok(false) => {
+                                tracing::warn!("Authentication failed: invalid password for user '{}'", login);
+                                Err(())
+                            }
+                            Err(e) => {
+                                tracing::warn!("Authentication error during password verify for '{}': {}", login, e);
+                                Err(())
+                            }
+                        }
+                    }
+                    Ok(None) => {
+                        tracing::warn!("Authentication failed: user '{}' not found", login);
                         Err(())
                     }
-                };
+                    Err(e) => {
+                        tracing::warn!("Authentication error looking up user '{}': {}", login, e);
+                        Err(())
+                    }
+                }
+            } else {
+                tracing::warn!("Unsupported Authorization header format");
+                Err(())
             }
-            tracing::warn!("Unsupported Authorization header format");
         } else {
             tracing::warn!("Missing Authorization header");
+            Err(())
         }
-        Err(())
     }
 
     async fn is_public_repo(&self, repo_path: &std::path::Path) -> bool {
