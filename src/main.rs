@@ -4,6 +4,7 @@ mod models;
 mod db;
 mod errors;
 mod api;
+mod repo;
 
 use crate::git::*;
 use crate::db::Database;
@@ -12,7 +13,6 @@ use actix_web::{web, App, HttpServer};
 use git_http_backend::actix::handler::ActixGitHttp;
 use git_http_backend::actix_git_router;
 use git_http_backend::config::GitHttpConfig;
-use git_http_backend::{GitConfig, GitOperation};
 use std::io;
 use std::path::PathBuf;
 use std::fs;
@@ -43,7 +43,7 @@ pub async fn main() -> io::Result<()> {
         },
     };
 
-    let auth = WithAuth { inner: base, db: db_data.get_ref().clone() };
+    let _auth = WithAuth { inner: base, db: db_data.get_ref().clone() };
 
     let bind_addr = format!("{}:{}", addr.clone(), port);
     HttpServer::new(move || {
@@ -51,6 +51,7 @@ pub async fn main() -> io::Result<()> {
             .app_data(db_data.clone())
             .wrap(actix_web::middleware::Logger::default())
             .configure(|x| actix_git_router::<WithAuth>(x))
+            .configure(crate::api::config)
     })
         .bind(bind_addr)?
         .run()

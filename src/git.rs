@@ -1,12 +1,13 @@
 use clap::Parser;
-use git_http_backend::actix::handler::ActixGitHttp;
-use git_http_backend::{AuthInput, GitConfig, GitOperation};
+use git_http_backend::{AuthInput, GitConfig, GitOperation, actix::handler::ActixGitHttp};
 use std::path::PathBuf;
 use tracing;
 use std::fs;
 use http_auth_basic::Credentials;
 use crate::db::Database;
 use crate::auth::auth as auth_check;
+use crate::repo::repo_path;
+use mongodb::bson::doc;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -28,15 +29,43 @@ pub struct WithAuth {
 #[async_trait::async_trait]
 impl GitConfig for WithAuth {
     async fn rewrite(&self, original_path: String) -> PathBuf {
-        let path =
-            fs::canonicalize(
-                PathBuf::from(
-                    "./repos".to_string()
-                        + &original_path
-                )
-            ).unwrap();
+        let trimmed = original_path.trim_start_matches('/');
+        let segments: Vec<&str> = trimmed.split('/').collect();
 
-        path
+        if segments.len() < 2 {
+            tracing::warn!("rewrite: unexpected path '{}'", original_path);
+            let fallback = PathBuf::from("./repos".to_string() + &original_path);
+            return fs::canonicalize(&fallback).unwrap_or(fallback);
+        }
+
+        let username = segments[0];
+        let mut reponame = segments[1];
+        if let Some(no_git) = reponame.strip_suffix(".git") {
+            reponame = no_git;
+        }
+        let rest = if segments.len() > 2 {
+            Some(segments[2..].join("/"))
+        } else {
+            None
+        };
+
+        let resolved_path = if let Ok(Some(user)) = self.db.find_user_by_login(username).await {
+            match self.db.repositories.find_one(doc! { "user": &user._id, "name": reponame }).await {
+                Ok(Some(repo)) => {
+                    let base = repo_path(&user._id, &repo._id);
+                    if let Some(r) = rest.as_deref() {
+                        base.join(r)
+                    } else {
+                        base
+                    }
+                }
+                _ => PathBuf::from("./repos".to_string() + &original_path),
+            }
+        } else {
+            PathBuf::from("./repos".to_string() + &original_path)
+        };
+
+        fs::canonicalize(&resolved_path).unwrap_or(resolved_path)
     }
 
     async fn authenticate(&self, auth: AuthInput) -> Result<(), ()> {
@@ -60,6 +89,7 @@ impl GitConfig for WithAuth {
     }
 
     async fn is_public_repo(&self, repo_path: &std::path::Path) -> bool {
+        tracing::debug!("Checking if repo is public: {:?}", repo_path);
         // TODO: check if repo is public
         true
     }
