@@ -2,6 +2,7 @@ mod git;
 mod auth;
 mod models;
 mod db;
+mod errors;
 
 use crate::git::*;
 use crate::db::Database;
