@@ -397,23 +397,28 @@ async fn content(
         }
     }
 
-    let branch = query.branch.as_deref().unwrap_or("HEAD");
+    let branch_opt = query.branch.as_deref();
+    let rev = query
+        .commit
+        .as_deref()
+        .unwrap_or_else(|| branch_opt.unwrap_or("HEAD"));
+    let branch_for_lookup = if query.commit.is_some() { None } else { branch_opt };
 
     if let Some(path) = &query.path {
-        match repo::get_file_content(&repo.user, &repo._id, branch, Some(branch), path).await {
+        match repo::get_file_content(&repo.user, &repo._id, rev, branch_for_lookup, path).await {
             Ok(bytes) => {
                 let content_base64 = base64::engine::general_purpose::STANDARD.encode(bytes);
                 return HttpResponse::Ok().json(ContentResponse::Blob { content_base64 });
             }
             Err(_e_blob) => {
-                match repo::list_tree(&repo.user, &repo._id, branch, Some(branch), Some(path)).await {
+                match repo::list_tree(&repo.user, &repo._id, rev, branch_for_lookup, Some(path)).await {
                     Ok(entries) => return HttpResponse::Ok().json(ContentResponse::Tree { entries }),
                     Err(e) => return to_http_error(e),
                 }
             }
         }
     } else {
-        match repo::list_tree(&repo.user, &repo._id, branch, Some(branch), None).await {
+        match repo::list_tree(&repo.user, &repo._id, rev, branch_for_lookup, None).await {
             Ok(entries) => HttpResponse::Ok().json(ContentResponse::Tree { entries }),
             Err(e) => to_http_error(e),
         }

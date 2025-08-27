@@ -124,11 +124,12 @@ pub async fn main() -> io::Result<()> {
             .app_data(web::Data::new(_auth.clone()))
             .wrap(actix_web::middleware::Logger::default())
             .configure(api::config)
-            .configure(|x| actix_git_router::<WithAuth>(x))
             .service(
                 utoipa_swagger_ui::SwaggerUi::new("/docs/{_:.*}")
                     .url("/api-doc/openapi.json", ApiDoc::openapi()),
             )
+            .configure(|x| actix_git_router::<WithAuth>(x))
+
 
     })
         .bind(bind_addr)?

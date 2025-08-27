@@ -4,12 +4,8 @@ use crate::errors::GitError;
 use crate::models::*;
 use git2::{BranchType, ObjectType, Repository, Sort};
 
-fn repos_root() -> PathBuf {
-    PathBuf::from("./repos")
-}
-
 pub fn repo_path(user_id: &ObjectId, repo_id: &ObjectId) -> PathBuf {
-    repos_root().join(user_id.to_hex()).join(repo_id.to_hex())
+    PathBuf::from("./repos").join(user_id.to_hex()).join(repo_id.to_hex())
 }
 
 pub async fn init(user_id: ObjectId, repo_id: ObjectId) -> Result<PathBuf, GitError> {
@@ -104,15 +100,15 @@ pub async fn list_commits(
         };
 
         let author = commit.author();
-        let author_name = author.name().unwrap_or("").to_string();
-        let author_email = author.email().unwrap_or("").to_string();
+        let name = author.name().unwrap_or("").to_string();
+        let email = author.email().unwrap_or("").to_string();
         let timestamp_secs = commit.time().seconds();
         let subject = commit.summary().unwrap_or("").to_string();
 
         commits.push(CommitInfo {
             hash: commit.id().to_string(),
-            author_name,
-            author_email,
+            name,
+            email,
             timestamp_secs,
             subject,
         });

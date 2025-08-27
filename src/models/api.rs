@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-// ... existing code ...
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct LoginRequest {
     pub login: String,
@@ -61,6 +60,7 @@ pub struct ContentQuery {
     pub id: String,
     pub path: Option<String>,
     pub branch: Option<String>,
+    pub commit: Option<String>,
 }
 
 #[derive(Debug, Serialize, utoipa::ToSchema)]
@@ -71,6 +71,7 @@ pub enum ContentResponse {
 }
 
 #[derive(Debug, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CommitsQuery {
     pub id: String,
     pub branch: Option<String>,
@@ -81,4 +82,3 @@ pub struct CommitsQuery {
 pub struct ErrorResponse {
     pub error: String,
 }
-// ... existing code ...

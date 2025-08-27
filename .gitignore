@@ -1,3 +1,4 @@
 /target
+/repos
 .idea
 Cargo.lock

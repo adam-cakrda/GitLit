@@ -20,8 +20,8 @@ pub struct TreeEntry {
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct CommitInfo {
     pub hash: String,
-    pub author_name: String,
-    pub author_email: String,
+    pub name: String,
+    pub email: String,
     pub timestamp_secs: i64,
     pub subject: String,
 }
