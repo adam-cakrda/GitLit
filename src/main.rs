@@ -3,6 +3,7 @@ mod auth;
 mod models;
 mod db;
 mod errors;
+mod api;
 
 use crate::git::*;
 use crate::db::Database;
@@ -42,7 +43,7 @@ pub async fn main() -> io::Result<()> {
         },
     };
 
-    let auth = WithAuth { inner: base };
+    let auth = WithAuth { inner: base, db: db_data.get_ref().clone() };
 
     let bind_addr = format!("{}:{}", addr.clone(), port);
     HttpServer::new(move || {

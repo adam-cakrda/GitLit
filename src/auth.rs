@@ -60,7 +60,6 @@ pub async fn login(db: &Database, login: String, password: String) -> Result<Str
         .map_err(|e| AuthError::Internal(e.to_string()))?
         .ok_or(AuthError::InvalidCredentials)?;
 
-    // Verify password using bcrypt
     let ok = verify(password, &user.password)
         .map_err(|e| AuthError::Internal(e.to_string()))?;
     if !ok {

@@ -5,6 +5,7 @@ use mongodb::results::InsertOneResult;
 use mongodb::bson::doc;
 use tracing::info;
 
+#[derive(Clone, Debug)]
 pub struct Database {
     pub users: Collection<User>,
     pub repositories: Collection<Repository>,
