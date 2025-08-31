@@ -1,23 +1,28 @@
-use actix_web::{get, App, HttpServer, Result, web};
+use actix_web::{get, Result, web};
 use maud::{DOCTYPE, html, Markup};
 use crate::frontend::components;
 
 use crate::db::Database;
-use mongodb::bson::{doc, oid::ObjectId};
-use futures_util::TryStreamExt;
+use mongodb::bson::{oid::ObjectId};
 use std::collections::HashMap;
+use crate::api::service;
+use crate::models::ReposQuery;
 
 #[get("/")]
 pub async fn index(db: web::Data<Database>) -> Result<Markup> {
-    let filter = doc! { "is_private": false };
-    let sort_doc = doc! { "created_at": -1 };
-    let cursor = db.repositories
-        .find(filter)
-        .sort(sort_doc)
-        .limit(12)
+    let repos_all = service::repo_list(
+        &db,
+        None,
+        ReposQuery {
+            owner: None,
+            filter: Some("newest".to_string()),
+            q: None,
+        },
+    )
         .await
-        .expect("failed to query repositories");
-    let repos: Vec<crate::models::Repository> = cursor.try_collect().await.expect("failed to collect repos");
+        .map_err(actix_web::error::ErrorInternalServerError)?;
+
+    let repos: Vec<crate::models::Repository> = repos_all.into_iter().take(12).collect();
 
     let mut owner_ids: Vec<ObjectId> = Vec::new();
     for r in &repos {
@@ -25,15 +30,17 @@ pub async fn index(db: web::Data<Database>) -> Result<Markup> {
             owner_ids.push(r.user);
         }
     }
+
     let mut usernames: HashMap<ObjectId, String> = HashMap::new();
-    if !owner_ids.is_empty() {
-        let user_cursor = db.users
-            .find(doc! { "_id": { "$in": &owner_ids } })
-            .await
-            .expect("failed to query users");
-        let users: Vec<crate::models::User> = user_cursor.try_collect().await.expect("failed to collect users");
-        for u in users {
-            usernames.insert(u._id, u.username);
+    for uid in &owner_ids {
+        match service::username_by_id(&db, uid).await {
+            Ok(Some(name)) => {
+                usernames.insert(*uid, name);
+            }
+            Ok(None) => {}
+            Err(e) => {
+                return Err(actix_web::error::ErrorInternalServerError(e));
+            }
         }
     }
 
