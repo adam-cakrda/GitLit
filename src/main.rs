@@ -5,6 +5,7 @@ mod db;
 mod errors;
 mod api;
 mod repo;
+mod frontend;
 
 use crate::git::*;
 use crate::db::Database;
@@ -124,6 +125,7 @@ pub async fn main() -> io::Result<()> {
             .app_data(web::Data::new(_auth.clone()))
             .wrap(actix_web::middleware::Logger::default())
             .configure(api::config)
+            .configure(frontend::config)
             .service(
                 utoipa_swagger_ui::SwaggerUi::new("/docs/{_:.*}")
                     .url("/api-doc/openapi.json", ApiDoc::openapi()),

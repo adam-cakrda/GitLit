@@ -1,0 +1,132 @@
+:root {
+    --card:#0f1115;
+    --sub:#a8b3cf;
+    --accent:#7c9cff;
+}
+
+.title {
+    font-size: clamp(32px, 6vw, 64px);
+    line-height:1.05;
+    text-align: left;
+}
+
+.subtitle {
+    font-size: clamp(16px, 2.6vw, 22px);
+    color:var(--sub);
+    margin:0;
+    text-align: left;
+}
+
+.cta {
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:8px;
+    justify-content: flex-start;
+}
+
+.btn {
+    padding:12px 18px;
+    border-radius:14px;
+    background:var(--accent);
+    color:#0a0f1a;
+    font-weight:700;
+    border:1px solid rgba(124,156,255,.25);
+    box-shadow:0 10px 24px rgba(124,156,255,.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow:0 15px 30px rgba(124,156,255,.25);
+}
+
+.repos {
+    padding: 4rem 1rem 6rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.repos-title {
+    font-size: clamp(24px, 4vw, 32px);
+    margin: 0 0 2rem 0;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.repo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.repo-card {
+    background: var(--card);
+    border: 1px solid rgba(124, 156, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.repo-card:hover {
+    border-color: rgba(124, 156, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.repo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    color: var(--sub);
+}
+
+.name {
+    font-size: 1.0rem;
+    font-weight: 400;
+    transition: opacity 0.2s ease;
+}
+
+.name:hover {
+    opacity: 0.8;
+}
+
+.repo-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.repo-visibility {
+    background: #16181d;
+    color: var(--sub);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid rgba(124, 156, 255, 0.15);
+}
+
+.repo-fork {
+    color: var(--sub);
+    font-size: 0.85rem;
+    margin: 0 0 0.75rem 0;
+}
+
+.repo-fork a {
+    color: var(--accent);
+    transition: opacity 0.2s ease;
+}
+
+.repo-fork a:hover {
+    opacity: 0.8;
+}
+
+.repo-desc {
+    color: var(--sub);
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+}

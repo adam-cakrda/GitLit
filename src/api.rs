@@ -1,3 +1,5 @@
+mod handlers;
+
 use actix_web::{get, post, delete, web, HttpRequest, HttpResponse, Responder};
 use mongodb::bson::{doc, oid::ObjectId, DateTime};
 use futures_util::TryStreamExt;
