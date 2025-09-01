@@ -1,8 +1,9 @@
 use mongodb::bson::{oid::ObjectId};
 use crate::db::Database;
-use crate::errors::{AuthError, GitError};
+use crate::errors::*;
 use crate::models::*;
 use mongodb::bson::doc;
+use tokio::fs;
 
 // AUTH
 pub async fn auth_register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
@@ -80,8 +81,6 @@ pub async fn repo_create(db: &Database, user_id: ObjectId, payload: CreateRepoRe
 }
 
 pub async fn repo_delete(db: &Database, requester: ObjectId, repo_id_hex: &str) -> Result<(), String> {
-    use tokio::fs;
-
     let repository = resolve_repo_by_id(db, repo_id_hex).await?;
     if repository.user != requester {
         return Err("forbidden".into());

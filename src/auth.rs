@@ -20,6 +20,11 @@ fn dt_from_millis(ms: i64) -> DateTime {
 }
 
 pub async fn register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
+    let pw_len = password.chars().count();
+    if pw_len < 8 || pw_len > 128 {
+        return Err(AuthError::InvalidCredentials);
+    }
+
     match db.find_user_by_login(&username).await {
         Ok(Some(_)) => return Err(AuthError::InvalidCredentials),
         Ok(None) => {},

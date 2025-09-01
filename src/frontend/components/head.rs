@@ -1,4 +1,4 @@
-use maud::{DOCTYPE, html, Markup};
+use maud::{html, Markup};
 pub fn head(page_title: &str, css: Markup) -> Markup {
     html! {
         head {

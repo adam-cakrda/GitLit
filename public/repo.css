@@ -1,0 +1,343 @@
+:root {
+    --border: #21262d;
+    --hover: #1a1e24;
+    --accent: #58a6ff;
+    --green: #238636;
+}
+
+body {
+    padding-top: 7rem;
+}
+
+.name {
+  margin-right: auto; 
+  color: var(--sub);
+  font-size: 1rem;
+}
+
+.white {
+  color: var(--text);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.repo-visibility {
+    background: var(--border);
+    color: var(--sub);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 1rem;
+}
+
+.repo-nav {
+    display: flex;
+    gap: 2rem;
+    padding: 0 1rem;
+    background: rgb(31, 41, 55);
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-item {
+    padding: 0.75rem 0;
+    color: var(--sub);
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    position: relative;
+    cursor: pointer;
+}
+
+.nav-item.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+}
+
+.nav-item .badge {
+    background: var(--border);
+    color: var(--text);
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    align-items: start;
+}
+
+.left-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.file-explorer {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.explorer-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.branch-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.branch-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.commit-info {
+    flex: 1;
+    font-size: 0.875rem;
+    color: var(--sub);
+}
+
+.commit-hash {
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    color: var(--accent);
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.file-item:hover {
+    background: var(--hover);
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+.file-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.75rem;
+    color: var(--sub);
+}
+
+.file-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.file-message {
+    color: var(--sub);
+    font-size: 0.875rem;
+    margin-right: 1rem;
+}
+
+.file-time {
+    color: var(--sub);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.folder {
+    color: var(--accent);
+}
+
+.content-viewer {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.content-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.content-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.content-body {
+    padding: 1.5rem;
+}
+
+.readme-content {
+    line-height: 1.6;
+}
+
+.readme-content h1, .readme-content h2, .readme-content h3 {
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.readme-content h1 {
+    font-size: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.readme-content h2 {
+    font-size: 1.5rem;
+}
+
+.readme-content p {
+    margin-bottom: 1rem;
+    color: var(--sub);
+}
+
+.readme-content code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.125rem 0.25rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.875rem;
+}
+
+.readme-content pre {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.readme-content pre code {
+    background: none;
+    padding: 0;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-content {
+    padding: 1rem;
+}
+
+.description {
+    color: var(--sub);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.repo-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--sub);
+    font-size: 0.875rem;
+}
+
+.stat-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.topic {
+    background: rgba(88, 166, 255, 0.1);
+    color: var(--accent);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.icon-folder::before {
+    content: "📁";
+}
+
+.icon-file::before {
+    content: "📄";
+}
+
+.icon-branch {
+ color: #ffffff;
+}
+
+.icon-star {
+  fill: #ffffff;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .repo-nav {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+}

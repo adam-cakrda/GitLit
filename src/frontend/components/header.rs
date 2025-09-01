@@ -1,15 +1,31 @@
-use maud::{DOCTYPE, html, Markup};
-pub fn header() -> Markup {
+use maud::{html, Markup};
+
+pub fn header(display_name: Option<&str>) -> Markup {
     html! {
         header {
-            img src="gitlit.svg" alt="logo" {}
-            h1 { "GitLit" }
-            div class="profile" { "A" }
-            dic class="menu" {
-                div class="menu-name" { "adam" }
-                div class="menu-options" {
-                    a class="menu-text" { "My Repositories" }
-                    a class="menu-text red" { "Log Out" }
+            div class="header-top" {
+                img src="gitlit.svg" alt="logo" {}
+                h1 { "GitLit" }
+                @match display_name {
+                    Some(name) => {
+                        @let initial = name.chars().next().unwrap_or('?').to_string().to_uppercase();
+                        div class="profile" { (initial) }
+                        div class="menu" {
+                            div class="menu-name" { (name) }
+                            div class="menu-options" {
+                                a class="menu-text" { "My Repositories" }
+                                form method="post" class="menu-text" action="/logout" {
+                                    button type="submit" class="red" { "Log Out" }
+                                }
+                            }
+                        }
+                    }
+                    None => {
+                        div class="auth-buttons" {
+                            a href="/login" class="auth-btn-secondary" { "Log in" }
+                            a href="/register" class="auth-btn-primary" { "Sign up" }
+                        }
+                    }
                 }
             }
         }

@@ -130,3 +130,13 @@
     font-size: 0.9rem;
     margin: 0 0 1rem 0;
 }
+
+.hero {
+    display: grid;
+    gap: 28px;
+    padding: 1rem 1rem; 
+    min-height: 24rem; 
+    place-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}

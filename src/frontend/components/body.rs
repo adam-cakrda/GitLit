@@ -1,6 +1,7 @@
-use maud::{DOCTYPE, html, Markup};
+use maud::{html, Markup};
 use crate::frontend::components;
-pub fn body(content: Markup) -> Markup {
+
+pub fn body(content: Markup, user_display: Option<&str>) -> Markup {
     html! {
         body {
             div class="shapes" {
@@ -8,11 +9,9 @@ pub fn body(content: Markup) -> Markup {
                 div class="blob b2" {}
             }
 
-            (components::header())
+            (components::header(user_display))
 
-            main {
-                (content)
-            }
+            (content)
         }
     }
 }

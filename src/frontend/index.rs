@@ -1,4 +1,4 @@
-use actix_web::{get, Result, web};
+use actix_web::{get, Result, web, HttpRequest};
 use maud::{DOCTYPE, html, Markup};
 use crate::frontend::components;
 
@@ -8,8 +8,22 @@ use std::collections::HashMap;
 use crate::api::service;
 use crate::models::ReposQuery;
 
+fn bearer_token_from_req(req: &HttpRequest) -> Option<String> {
+    // Try Authorization: Bearer <token>
+    if let Some(h) = req.headers().get(actix_web::http::header::AUTHORIZATION) {
+        if let Ok(s) = h.to_str() {
+            let prefix = "Bearer ";
+            if let Some(rest) = s.strip_prefix(prefix) {
+                return Some(rest.to_string());
+            }
+        }
+    }
+    // Fallback to "token" cookie
+    req.cookie("token").map(|c| c.value().to_string())
+}
+
 #[get("/")]
-pub async fn index(db: web::Data<Database>) -> Result<Markup> {
+pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> {
     let repos_all = service::repo_list(
         &db,
         None,
@@ -44,6 +58,24 @@ pub async fn index(db: web::Data<Database>) -> Result<Markup> {
         }
     }
 
+    // Resolve current user display name (if logged in)
+    let user_display: Option<String> = match bearer_token_from_req(&req) {
+        Some(token) => {
+            match service::get_user_id_from_token(&db, token).await {
+                Ok(user_id) => {
+                    // Load display_name from DB
+                    use mongodb::bson::doc;
+                    match db.users.find_one(doc! { "_id": &user_id }).await {
+                        Ok(Some(u)) => Some(u.display_name),
+                        _ => None,
+                    }
+                }
+                Err(_) => None,
+            }
+        }
+        None => None,
+    };
+
     Ok(html! {
         (DOCTYPE)
         html lang="en" {
@@ -52,33 +84,35 @@ pub async fn index(db: web::Data<Database>) -> Result<Markup> {
             }))
 
             (components::body(html! {
-                section class="hero" {
-                    h1 class="title" id="title" { "Fast, minimal and open-source git hosting." }
-                    p class="subtitle" id="subtitle" { "GitLit is a open-source, Rust-powered alternative to GitHub. Built on " code { "actix-web" } " with server-side rendering for speed, simplicity, and predictability" }
-                    div class="cta" {
-                        a class="btn" href="/adam-cakrda/gitlit" { "Get Started" }
+                main {
+                    section class="hero" {
+                        h1 class="title" id="title" { "Fast, minimal and open-source git hosting." }
+                        p class="subtitle" id="subtitle" { "GitLit is a open-source, Rust-powered alternative to GitHub. Built on " code { "actix-web" } " with server-side rendering for speed, simplicity, and predictability" }
+                        div class="cta" {
+                            a class="btn" href="/adam-cakrda/gitlit" { "Get Started" }
+                        }
                     }
-                }
 
-                section class="repos" {
-                    h2 class="repos-title" { "Newest Repositories" }
-                    div class="repo-grid" {
-                        @for r in &repos {
-                            @let owner = usernames.get(&r.user).map(|s| s.as_str()).unwrap_or("unknown");
-                            @let href = format!("/{}/{}", owner, r.name);
-                            div class="repo-card" {
-                                div class="repo-header" {
-                                    a href={(href.clone())} class="name" {
-                                        (owner) " / " span class="repo-name" { (&r.name) }
+                    section class="repos" {
+                        h2 class="repos-title" { "Newest Repositories" }
+                        div class="repo-grid" {
+                            @for r in &repos {
+                                @let owner = usernames.get(&r.user).map(|s| s.as_str()).unwrap_or("unknown");
+                                @let href = format!("/{}/{}", owner, r.name);
+                                div class="repo-card" {
+                                    div class="repo-header" {
+                                        a href={(href.clone())} class="name" {
+                                            (owner) " / " span class="repo-name" { (&r.name) }
+                                        }
+                                        span class="repo-visibility" { (if r.is_private { "Private" } else { "Public" }) }
                                     }
-                                    span class="repo-visibility" { (if r.is_private { "Private" } else { "Public" }) }
+                                    p class="repo-desc" { (r.description.clone()) }
                                 }
-                                p class="repo-desc" { (r.description.clone()) }
                             }
                         }
                     }
                 }
-            }))
+            }, user_display.as_deref()))
         }
     })
 }
