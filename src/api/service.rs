@@ -4,6 +4,7 @@ use crate::errors::*;
 use crate::models::*;
 use mongodb::bson::doc;
 use tokio::fs;
+use actix_web::{HttpRequest};
 
 // AUTH
 pub async fn auth_register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {

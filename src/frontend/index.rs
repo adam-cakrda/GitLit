@@ -1,26 +1,13 @@
 use actix_web::{get, Result, web, HttpRequest};
 use maud::{DOCTYPE, html, Markup};
-use crate::frontend::components;
 
 use crate::db::Database;
 use mongodb::bson::{oid::ObjectId};
 use std::collections::HashMap;
 use crate::api::service;
 use crate::models::ReposQuery;
-
-fn bearer_token_from_req(req: &HttpRequest) -> Option<String> {
-    // Try Authorization: Bearer <token>
-    if let Some(h) = req.headers().get(actix_web::http::header::AUTHORIZATION) {
-        if let Ok(s) = h.to_str() {
-            let prefix = "Bearer ";
-            if let Some(rest) = s.strip_prefix(prefix) {
-                return Some(rest.to_string());
-            }
-        }
-    }
-    // Fallback to "token" cookie
-    req.cookie("token").map(|c| c.value().to_string())
-}
+use crate::frontend;
+use crate::frontend::{components, SERVE_PATH};
 
 #[get("/")]
 pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> {
@@ -58,12 +45,10 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
         }
     }
 
-    // Resolve current user display name (if logged in)
-    let user_display: Option<String> = match bearer_token_from_req(&req) {
+    let user_display: Option<String> = match frontend::token_from_req(&req) {
         Some(token) => {
             match service::get_user_id_from_token(&db, token).await {
                 Ok(user_id) => {
-                    // Load display_name from DB
                     use mongodb::bson::doc;
                     match db.users.find_one(doc! { "_id": &user_id }).await {
                         Ok(Some(u)) => Some(u.display_name),
@@ -80,7 +65,7 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
         (DOCTYPE)
         html lang="en" {
             (components::head("GitLit", html! {
-                link rel="stylesheet" href="home.css" {}
+                link rel="stylesheet" href=(SERVE_PATH.to_string() + "/home.css") {}
             }))
 
             (components::body(html! {

@@ -9,6 +9,8 @@ mod frontend;
 
 use crate::git::*;
 use crate::db::Database;
+use std::env;
+
 
 use actix_web::{web, App, HttpServer};
 use git_http_backend::actix::handler::ActixGitHttp;
@@ -99,14 +101,14 @@ pub async fn main() -> io::Result<()> {
 
     if !root.exists() {
         warn!("root path not exists");
-        fs::create_dir_all(root.clone())?;
+        fs::create_dir(root.clone())?;
     }
 
     let db = Database::init().await;
     let db_data = web::Data::new(db);
 
     let addr =  String::from("localhost");
-    let port = 8080;
+    let port: u16 = env::var("PORT").unwrap_or("8080".to_string()).parse().unwrap_or(8080);
 
     let base = ActixGitHttp {
         config: GitHttpConfig {
@@ -129,8 +131,8 @@ pub async fn main() -> io::Result<()> {
                 utoipa_swagger_ui::SwaggerUi::new("/docs/{_:.*}")
                     .url("/api-doc/openapi.json", ApiDoc::openapi()),
             )
-            .configure(|x| actix_git_router::<WithAuth>(x))
             .configure(frontend::config)
+            .configure(|x| actix_git_router::<WithAuth>(x))
     })
         .bind(bind_addr)?
         .run()

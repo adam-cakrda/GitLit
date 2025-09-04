@@ -5,6 +5,7 @@ use maud::{DOCTYPE, html, Markup};
 use crate::db::Database;
 use crate::api::service;
 use crate::frontend::components;
+use crate::frontend::SERVE_PATH;
 
 #[derive(serde::Deserialize)]
 pub struct LoginForm {
@@ -40,7 +41,7 @@ pub async fn get_login(db: web::Data<Database>, req: HttpRequest) -> Result<Http
         (DOCTYPE)
         html lang="en" {
             (components::head("Login - GitLit", html! {
-                link rel="stylesheet" href="auth.css" {}
+                link rel="stylesheet" href=(SERVE_PATH.to_string() + "/auth.css") {}
             }))
             (components::body(html! {
                 main class="auth-container" {
@@ -113,7 +114,7 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest) -> Result<H
         (DOCTYPE)
         html lang="en" {
             (components::head("Register - GitLit", html! {
-                link rel="stylesheet" href="auth.css" {}
+                link rel="stylesheet" href=(SERVE_PATH.to_string() + "/auth.css") {}
             }))
             (components::body(html! {
                 main class="auth-container" {

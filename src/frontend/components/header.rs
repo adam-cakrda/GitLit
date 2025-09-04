@@ -1,10 +1,11 @@
 use maud::{html, Markup};
+use crate::frontend::SERVE_PATH;
 
 pub fn header(display_name: Option<&str>) -> Markup {
     html! {
         header {
             div class="header-top" {
-                img src="gitlit.svg" alt="logo" {}
+                img src=(SERVE_PATH.to_string() + "/gitlit.svg") alt="logo" {}
                 h1 { "GitLit" }
                 @match display_name {
                     Some(name) => {
