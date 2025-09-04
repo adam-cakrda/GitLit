@@ -9,7 +9,7 @@ use actix_files::Files;
 use actix_web::HttpRequest;
 use once_cell::sync::Lazy;
 use std::env;
-
+use actix_web::web::service;
 pub static SERVE_PATH: Lazy<String> = Lazy::new(|| {
     env::var("SERVE_FILES_PATH").unwrap_or_else(|_| "/static".to_string())
 });
@@ -20,9 +20,9 @@ pub fn token_from_req(req: &HttpRequest) -> Option<String> {
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
-        .service(index)
-
         .service(Files::new(SERVE_PATH.to_string().as_str(), "./public").prefer_utf8(true))
+
+        .service(index)
 
         .service(auth::get_login)
         .service(auth::post_login)
@@ -30,8 +30,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(auth::post_register)
         .service(auth::post_logout)
 
-        .service(repo::repo_overview)
-        .service(repo::repo_tree)
-        .service(repo::repo_blob);
+        .service(repo::index)
+        .service(repo::tree)
+        .service(repo::tree_at_path)
+        .service(repo::blob)
+        .service(repo::commits);
 
 }

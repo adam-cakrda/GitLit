@@ -32,3 +32,27 @@ pub fn header(display_name: Option<&str>) -> Markup {
         }
     }
 }
+
+pub fn repo_header(owner_slug: &str, repo_slug: &str, is_private: bool) -> Markup {
+    let visibility = if is_private { "Private" } else { "Public" };
+    html! {
+        header {
+            div class="header-top" {
+                img src=(SERVE_PATH.to_string() + "/gitlit.svg") alt="logo" {}
+                div class="name" {
+                    a href={(format!("/{}", owner_slug))} { (owner_slug) }
+                    " / "
+                    a href={(format!("/{}/{}", owner_slug, repo_slug))} class="white" { (repo_slug) }
+                }
+                div class="repo-visibility" { (visibility) }
+            }
+            nav class="repo-nav" {
+                a class="nav-item active" {
+                    img src=(SERVE_PATH.to_string() + "/code.svg") alt="code" class="icon-branch" {}
+                    "Code"
+                }
+                a class="nav-item" { "Settings" }
+            }
+        }
+    }
+}

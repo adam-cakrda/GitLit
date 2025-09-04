@@ -201,6 +201,48 @@ pub async fn get_file_content(
     Ok(blob.content().to_vec())
 }
 
+pub async fn commit_diff(
+    user_id: &ObjectId,
+    repo_id: &ObjectId,
+    commit_hash: &str,
+) -> Result<String, GitError> {
+    use git2::{Oid, DiffOptions, DiffFormat};
+
+    let repo_path = repo_path(user_id, repo_id);
+    let repo = Repository::open_bare(&repo_path).map_err(|e| GitError::Git(e.to_string()))?;
+
+    let oid = Oid::from_str(commit_hash).map_err(|e| GitError::Git(e.to_string()))?;
+    let commit = repo.find_commit(oid).map_err(|e| GitError::Git(e.to_string()))?;
+    let tree = commit.tree().map_err(|e| GitError::Git(e.to_string()))?;
+
+    let parent_tree = if commit.parent_count() > 0 {
+        let p = commit.parent(0).map_err(|e| GitError::Git(e.to_string()))?;
+        Some(p.tree().map_err(|e| GitError::Git(e.to_string()))?)
+    } else {
+        None
+    };
+
+    let mut diff_opts = DiffOptions::new();
+    let diff = match parent_tree {
+        Some(ref pt) => repo.diff_tree_to_tree(Some(pt), Some(&tree), Some(&mut diff_opts))
+            .map_err(|e| GitError::Git(e.to_string()))?,
+        None => repo.diff_tree_to_tree(None, Some(&tree), Some(&mut diff_opts))
+            .map_err(|e| GitError::Git(e.to_string()))?,
+    };
+
+    let mut buf = String::new();
+    diff.print(DiffFormat::Patch, |_delta, _hunk, line| {
+        use std::fmt::Write as _;
+        let _ = match line.origin() {
+            ' ' | '+' | '-' | '@' | 'F' => write!(&mut buf, "{}", std::str::from_utf8(line.content()).unwrap_or("")),
+            _ => write!(&mut buf, "{}", std::str::from_utf8(line.content()).unwrap_or("")),
+        };
+        true
+    }).map_err(|e| GitError::Git(e.to_string()))?;
+
+    Ok(buf)
+}
+
 pub async fn exists(user_id: &ObjectId, repo_id: &ObjectId) -> bool {
     let p = repo_path(user_id, repo_id);
     Repository::open_bare(&p).is_ok()

@@ -10,19 +10,19 @@ body {
 }
 
 .name {
-  margin-right: auto; 
-  color: var(--sub);
-  font-size: 1rem;
+    margin-right: auto;
+    color: var(--sub);
+    font-size: 1rem;
 }
 
 .white {
-  color: var(--text);
+    color: var(--text);
 }
 
 .container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
 }
 
 .repo-visibility {
@@ -95,6 +95,11 @@ body {
     gap: 1rem;
 }
 
+/* Branch dropdown */
+.branch-dropdown {
+    position: relative;
+    display: inline-block;
+}
 .branch-btn {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border);
@@ -106,9 +111,62 @@ body {
     align-items: center;
     gap: 0.5rem;
 }
-
 .branch-btn:hover {
     background: rgba(255, 255, 255, 0.15);
+}
+.branch-menu {
+    list-style: none;
+    position: fixed;
+    z-index: 5;
+    min-width: 220px;
+    margin: 0;
+    padding: 0.5rem 0;
+    border: 1px solid var(--border);
+    background: rgb(31, 41, 55);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    display: none;
+}
+.branch-menu li a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: var(--text);
+}
+.branch-menu li a:hover {
+    background: var(--hover);
+}
+.branch-dropdown:hover .branch-menu {
+    display: block;
+}
+.badge-head {
+    background: rgba(88, 166, 255, 0.1);
+    color: var(--accent);
+    font-size: 0.65rem;
+    border-radius: 0.5rem;
+    padding: 0.1rem 0.35rem;
+    margin-right: 0.35rem;
+}
+
+/* Commits button */
+.commits-btn {
+    background: rgba(88, 166, 255, 0.15);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.commits-btn .badge {
+    background: var(--border);
+    color: var(--text);
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+}
+.commits-btn:hover {
+    background: rgba(88, 166, 255, 0.25);
 }
 
 .commit-info {
@@ -176,6 +234,24 @@ body {
     color: var(--accent);
 }
 
+/* Breadcrumbs */
+.breadcrumbs {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+}
+.breadcrumbs a {
+    color: var(--text);
+}
+.crumb-sep {
+    color: var(--sub);
+}
+
+/* Content viewer + commits list */
 .content-viewer {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border);
@@ -245,6 +321,32 @@ body {
 .readme-content pre code {
     background: none;
     padding: 0;
+}
+
+.commits-list .commits-ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.commit-li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.commit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.commit-subject {
+    font-weight: 600;
+}
+.commit-meta {
+    color: var(--sub);
+    font-size: 0.875rem;
+}
+.commit-side .commit-hash {
+    display: inline-block;
 }
 
 .sidebar {
@@ -320,24 +422,29 @@ body {
 }
 
 .icon-branch {
- color: #ffffff;
+    color: #ffffff;
 }
 
 .icon-star {
-  fill: #ffffff;
+    fill: #ffffff;
 }
 
 @media (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;
     }
-    
+
     .repo-nav {
         overflow-x: auto;
         white-space: nowrap;
     }
-    
+
     .container {
         padding: 1rem;
+    }
+
+    .branch-menu {
+        min-width: 180px;
+        right: 0;
     }
 }
