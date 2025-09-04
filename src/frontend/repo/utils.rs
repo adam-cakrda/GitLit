@@ -155,6 +155,7 @@ pub fn file_list(
                         li class="file-item" {
                             (icon)
                             a href={(format!("/{}/{}/tree/{}/{}", owner_slug, repo_slug, rev, rel))} { (name_markup) }
+                            //TODO: last commit and time
                             span class="file-message" { "" }
                             span class="file-time" { "" }
                         }

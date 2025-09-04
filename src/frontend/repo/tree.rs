@@ -30,7 +30,6 @@ async fn render_tree_page(
         .await
         .unwrap_or_default();
 
-    // Load branches for dropdown and total commits for the button
     let branches = repo::list_branches(&owner._id, &repo._id).await.unwrap_or_default();
     let reference = branch_opt.unwrap_or(&rev);
     let total_commits = repo::list_commits(&owner._id, &repo._id, reference, branch_opt, 0)
