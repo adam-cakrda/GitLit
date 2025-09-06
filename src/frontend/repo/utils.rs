@@ -47,7 +47,7 @@ pub async fn resolve_owner_repo(
     Ok((owner, repo))
 }
 
-pub async fn default_ref(db: &Database, owner: &User, repo: &Repository) -> String {
+pub async fn default_ref(_db: &Database, owner: &User, repo: &Repository) -> String {
     match repo::list_branches(&owner._id, &repo._id).await {
         Ok(list) => {
             if let Some(h) = list.iter().find(|b| b.is_head) {
@@ -74,10 +74,16 @@ pub fn render_readme_html(md_bytes: &[u8]) -> Option<Markup> {
         Ok(s) => s,
         Err(_) => return None,
     };
-    let mut html_buf = String::new();
-    let parser = pulldown_cmark::Parser::new_ext(md, pulldown_cmark::Options::all());
-    pulldown_cmark::html::push_html(&mut html_buf, parser);
-    let clean = ammonia::Builder::default().clean(&html_buf).to_string();
+
+    let mut options = comrak::ComrakOptions::default();
+    options.extension.tasklist = true;
+    let html = comrak::markdown_to_html(md, &options);
+    let clean = ammonia::Builder::default()
+        .add_tags(&["input", "label"])
+        .add_generic_attributes(&["type", "checked", "disabled"])
+        .clean(&html)
+        .to_string();
+
     Some(PreEscaped(clean).into())
 }
 
