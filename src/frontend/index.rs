@@ -74,7 +74,7 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
                         h1 class="title" id="title" { "Fast, minimal and open-source git hosting." }
                         p class="subtitle" id="subtitle" { "GitLit is a open-source, Rust-powered alternative to GitHub. Built on " code { "actix-web" } " with server-side rendering for speed, simplicity, and predictability" }
                         div class="cta" {
-                            a class="btn" href="/adam-cakrda/gitlit" { "Get Started" }
+                            a class="btn" href="/adam-cakrda/GitLit" { "Get Started" }
                         }
                     }
 

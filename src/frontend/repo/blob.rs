@@ -40,7 +40,7 @@ pub async fn blob(
     let parent_path = utils::parent_path(&blob_path);
 
     let content = html! {
-        (components::repo_header(&owner.username, &repo.name, repo.is_private))
+        (components::repo_header(user_display.as_deref(), &owner.username, &repo.name, repo.is_private))
         div class="container" {
             div class="main-content" {
                 div class="left-content" {

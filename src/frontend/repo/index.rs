@@ -21,8 +21,7 @@ pub async fn index(
     let entries = repo::list_tree(&owner._id, &repo._id, &default, Some(&default), None)
         .await
         .unwrap_or_default();
-
-    // Load branches for dropdown and total commits for the button
+    
     let branches = repo::list_branches(&owner._id, &repo._id).await.unwrap_or_default();
     let total_commits = repo::list_commits(&owner._id, &repo._id, &default, Some(&default), 0)
         .await
@@ -42,7 +41,7 @@ pub async fn index(
     }.await;
 
     let content = html! {
-        (components::repo_header(&owner.username, &repo.name, repo.is_private))
+        (components::repo_header(user_display.as_deref(), &owner.username, &repo.name, repo.is_private))
         div class="container" {
             div class="main-content" {
                 div class="left-content" {
@@ -64,11 +63,11 @@ pub async fn index(
                                     }
                                 }
                             }
+                            div class="commit-info" { "" }
                             a class="commits-btn" href={(format!("/{}/{}/commits/{}", owner.username, repo.name, default))} {
                                 "Commits "
                                 span class="badge" { (total_commits) }
                             }
-                            div class="commit-info" { "" }
                         }
                         (utils::breadcrumbs(&owner.username, &repo.name, &default, None))
                         (utils::file_list(&owner.username, &repo.name, &default, None, &entries))

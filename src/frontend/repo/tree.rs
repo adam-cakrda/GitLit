@@ -38,7 +38,7 @@ async fn render_tree_page(
         .unwrap_or(0);
 
     let content = html! {
-        (components::repo_header(&owner.username, &repo.name, repo.is_private))
+        (components::repo_header(user_display.as_deref(), &owner.username, &repo.name, repo.is_private))
         div class="container" {
             div class="main-content" {
                 div class="left-content" {
@@ -60,11 +60,11 @@ async fn render_tree_page(
                                     }
                                 }
                             }
+                            div class="commit-info" { "" }
                             a class="commits-btn" href={(format!("/{}/{}/commits/{}", owner.username, repo.name, reference))} {
                                 "Commits "
                                 span class="badge" { (total_commits) }
                             }
-                            div class="commit-info" { "" }
                         }
                         (utils::breadcrumbs(&owner.username, &repo.name, reference, path_opt))
                         (utils::file_list(&owner.username, &repo.name, reference, path_opt, &entries))

@@ -48,7 +48,19 @@ header {
     color: var(--text);
     font-size: 1.5rem;
     font-weight: bold;
+    margin: 0;
+}
+
+.header-top a:has(> h1) {
     margin-right: auto;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.header-top > a:first-child {
+    display: inline-flex;
+    align-items: center;
 }
 
 .auth-buttons {
@@ -98,7 +110,7 @@ header {
     border-radius: 8px;
     color: #0a0f1a;
     font-weight: 700;
-    border: 2px solid var(--accent);
+    border: 2px solid rgb(59 130 246);
     transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
     margin-right: 0.75rem;
     white-space: nowrap;

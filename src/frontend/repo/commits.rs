@@ -57,7 +57,7 @@ pub async fn commits(
     };
 
     let content = html! {
-        (components::repo_header(&owner.username, &repository.name, repository.is_private))
+        (components::repo_header(user_display.as_deref(), &owner.username, &repository.name, repository.is_private))
         div class="container" {
             div class="main-content" {
                 div class="left-content" {

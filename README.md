@@ -96,7 +96,7 @@ Build GitLit from the source and install dependencies:
     - [ ] Search
     - [x] Home
     - [x] Repo
-      - [ ] Create
+      - [x] Create
       - [ ] Delete
       - [x] Branches
       - [x] Commits
