@@ -19,7 +19,7 @@ use git_http_backend::config::GitHttpConfig;
 use std::io;
 use std::path::PathBuf;
 use std::fs;
-use log::warn;
+use log::{info, warn};
 use utoipa::OpenApi;
 
 #[derive(utoipa::OpenApi)]
@@ -97,7 +97,8 @@ impl utoipa::Modify for SecurityAddon {
 pub async fn main() -> io::Result<()> {
     tracing_subscriber::fmt().init();
 
-    let root = fs::canonicalize(PathBuf::from("./repos".to_string()))?;
+    let root = fs::canonicalize(PathBuf::from("./repos".to_string()))
+        .unwrap_or_else(|_| PathBuf::from("./repos"));
 
     if !root.exists() {
         warn!("root path not exists");

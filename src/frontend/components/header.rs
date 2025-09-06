@@ -10,6 +10,9 @@ pub fn header(display_name: Option<&str>) -> Markup {
                 @match display_name {
                     Some(name) => {
                         @let initial = name.chars().next().unwrap_or('?').to_string().to_uppercase();
+                        a href="/new" class="auth-btn-secondary create-repo-btn" {
+                            img src=(SERVE_PATH.to_string() + "/create.svg") alt="Create repository" {}
+                        }
                         div class="profile" { (initial) }
                         div class="menu" {
                             div class="menu-name" { (name) }

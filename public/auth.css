@@ -251,28 +251,28 @@
 }
 
 .code-digit {
-    width: 3rem !important;
-    height: 3rem !important;
+    width: 3rem;
+    height: 3rem;
     text-align: center;
-    font-size: 1.25rem !important;
+    font-size: 1.25rem;
     font-weight: 600;
-    border: 2px solid var(--border) !important;
-    border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: var(--text) !important;
-    transition: all 0.2s ease !important;
-    padding: 0 !important;
+    border: 2px solid var(--border);
+    border-radius: 8px ;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    transition: all 0.2s ease;
+    padding: 0;
 }
 
 .code-digit:focus {
-    border-color: var(--accent) !important;
-    box-shadow: 0 0 0 3px rgba(124, 156, 255, 0.1) !important;
-    outline: none !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124, 156, 255, 0.1);
+    outline: none;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .code-digit:hover {
-    border-color: rgba(124, 156, 255, 0.3) !important;
+    border-color: rgba(124, 156, 255, 0.3);
 }
 
 .email-actions {
@@ -346,9 +346,9 @@
     }
     
     .code-digit {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
-        font-size: 1.1rem !important;
+        width: 2.5rem ;
+        height: 2.5rem ;
+        font-size: 1.1rem ;
     }
 }
 
@@ -370,8 +370,8 @@
     }
     
     .code-digit {
-        width: 2.25rem !important;
-        height: 2.25rem !important;
-        font-size: 1rem !important;
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1rem;
     }
 }

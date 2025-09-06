@@ -4,7 +4,7 @@ mod components;
 mod auth;
 mod repo;
 
-pub use index::*;
+use index::*;
 use actix_files::Files;
 use actix_web::HttpRequest;
 use once_cell::sync::Lazy;
@@ -34,6 +34,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(repo::tree)
         .service(repo::tree_at_path)
         .service(repo::blob)
-        .service(repo::commits);
+        .service(repo::commits)
+        .service(repo::new::get)
+        .service(repo::new::post);
 
 }

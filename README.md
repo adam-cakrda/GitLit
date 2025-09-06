@@ -96,21 +96,21 @@ Build GitLit from the source and install dependencies:
     - [ ] Search
     - [x] Home
     - [x] Repo
-    - [ ] Profile
-    - [x] Branches
-    - [x] Commits
-    - [x] File
-    - [ ] Settings
-    - [ ] Issues
-    - [ ] Pull requests
-    - [ ] and more ....
+      - [ ] Create
+      - [ ] Delete
+      - [x] Branches
+      - [x] Commits
+      - [x] Content
+      - [ ] Issues
+      - [ ] Pull requests
+      - [ ] and more ....
   
 - [ ] Repo
     - [x] Create
     - [x] Delete
-    - [x] branches
-    - [x] commits
-    - [x] content
+    - [x] Branches
+    - [x] Commits
+    - [x] Content
     - [ ] Issues
     - [ ] Pull requests
     - [ ] and more ....
