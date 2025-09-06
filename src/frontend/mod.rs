@@ -9,7 +9,7 @@ use actix_files::Files;
 use actix_web::HttpRequest;
 use once_cell::sync::Lazy;
 use std::env;
-use actix_web::web::service;
+
 pub static SERVE_PATH: Lazy<String> = Lazy::new(|| {
     env::var("SERVE_FILES_PATH").unwrap_or_else(|_| "/static".to_string())
 });

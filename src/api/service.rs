@@ -4,7 +4,7 @@ use crate::errors::*;
 use crate::models::*;
 use mongodb::bson::doc;
 use tokio::fs;
-use actix_web::{HttpRequest};
+use std::io::Write;
 
 // AUTH
 pub async fn auth_register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
@@ -224,4 +224,58 @@ pub async fn git_commits(
     crate::repo::list_commits(&repo.user, &repo._id, branch, Some(branch), limit)
         .await
         .map_err(|e| e.to_string())
+}
+
+pub async fn git_download(
+    db: &Database,
+    requester_user_id: Option<ObjectId>,
+    query: ContentQuery,
+) -> Result<(String, Vec<u8>), String> {
+    use zip::write::FileOptions;
+    use zip::CompressionMethod;
+
+    let repo = resolve_repo_by_id(db, &query.id).await?;
+    if repo.is_private && Some(repo.user) != requester_user_id {
+        return Err("forbidden".into());
+    }
+
+    let branch_opt = query.branch.as_deref();
+    let rev = query
+        .commit
+        .as_deref()
+        .unwrap_or_else(|| branch_opt.unwrap_or("HEAD"));
+    let branch_for_lookup = if query.commit.is_some() { None } else { branch_opt };
+
+    let files = crate::repo::collect_files_at_path(&repo.user, &repo._id, rev, branch_for_lookup, query.path.as_deref())
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if files.is_empty() {
+        return Err("invalid branch or revspec".into());
+    }
+
+    let default_name = query
+        .path
+        .as_deref()
+        .and_then(|p| std::path::Path::new(p).file_name().and_then(|s| s.to_str()))
+        .map(|s| format!("{}.zip", s))
+        .unwrap_or_else(|| format!("{}-{}.zip", repo.name, branch_opt.unwrap_or("HEAD")));
+
+    let mut buf: Vec<u8> = Vec::new();
+    {
+        let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut buf));
+
+        let options = FileOptions::<()>::default()
+            .compression_method(CompressionMethod::Deflated);
+
+        for (path, bytes) in files {
+            zip.start_file(path, options.clone())
+                .map_err(|e| e.to_string())?;
+            zip.write_all(&bytes).map_err(|e| e.to_string())?;
+        }
+
+        zip.finish().map_err(|e| e.to_string())?;
+    }
+
+    Ok((default_name, buf))
 }

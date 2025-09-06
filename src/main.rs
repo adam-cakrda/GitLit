@@ -33,7 +33,8 @@ use utoipa::OpenApi;
         crate::api::list_repos,
         crate::api::branches,
         crate::api::content,
-        crate::api::commits
+        crate::api::commits,
+        crate::api::download
     ),
     components(
         schemas(
@@ -129,8 +130,8 @@ pub async fn main() -> io::Result<()> {
             .wrap(actix_web::middleware::Logger::default())
             .configure(api::config)
             .service(
-                utoipa_swagger_ui::SwaggerUi::new("/docs/{_:.*}")
-                    .url("/api-doc/openapi.json", ApiDoc::openapi()),
+                utoipa_swagger_ui::SwaggerUi::new("/api/docs/{_:.*}")
+                    .url("/api/docs/openapi.json", ApiDoc::openapi()),
             )
             .configure(frontend::config)
             .configure(|x| actix_git_router::<WithAuth>(x))

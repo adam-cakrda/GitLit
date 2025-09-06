@@ -1,4 +1,3 @@
-use crate::models::*;
 use actix_web::{Result, web, HttpRequest, get};
 use crate::db::Database;
 use maud::{Markup, html};

@@ -37,4 +37,5 @@ actix-files = "0.6.7"
 ammonia = "4.1.1"
 once_cell = "1.21.3"
 comrak = "0.41.0"
+zip = "5.0.0"
 

@@ -1,7 +1,7 @@
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Result};
 use actix_web::http::header::LOCATION;
 use actix_web::cookie::{Cookie, SameSite, time::Duration};
-use maud::{DOCTYPE, html, Markup};
+use maud::{DOCTYPE, html};
 use crate::db::Database;
 use crate::api::service;
 use crate::frontend::components;

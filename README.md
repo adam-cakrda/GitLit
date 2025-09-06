@@ -81,7 +81,7 @@ Build GitLit from the source and install dependencies:
         - [x] branches
         - [x] commits
         - [x] content - of file or folder
-        - [ ] download as zip
+        - [x] download as zip
     - [ ] v2
         - [ ] search
         - [ ] issues

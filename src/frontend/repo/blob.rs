@@ -1,9 +1,7 @@
-use crate::models::*;
 use actix_web::{Result, web, HttpRequest, get};
 use crate::db::Database;
 use maud::{Markup, html};
 use crate::frontend::components;
-use crate::frontend::SERVE_PATH;
 use crate::repo;
 use crate::frontend::repo::utils;
 

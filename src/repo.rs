@@ -243,6 +243,78 @@ pub async fn commit_diff(
     Ok(buf)
 }
 
+pub async fn collect_files_at_path(
+    user_id: &ObjectId,
+    repo_id: &ObjectId,
+    rev: &str,
+    branch: Option<&str>,
+    path: Option<&str>,
+) -> Result<Vec<(String, Vec<u8>)>, GitError> {
+    use std::path::Path;
+
+    let repo_path = repo_path(user_id, repo_id);
+    let repo = Repository::open_bare(&repo_path).map_err(|e| GitError::Git(e.to_string()))?;
+
+    let base = branch.unwrap_or(rev);
+    let spec = if let Some(p) = path {
+        format!("{}:{}", base, p)
+    } else {
+        format!("{}^{{tree}}", base)
+    };
+
+    let obj = repo
+        .revparse_single(&spec)
+        .map_err(|e| GitError::Git(e.to_string()))?;
+    
+    if let Ok(blob) = obj.peel_to_blob() {
+        let name = if let Some(p) = path {
+            Path::new(p)
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("file")
+                .to_string()
+        } else {
+            format!("{}.bin", obj.id())
+        };
+        return Ok(vec![(name, blob.content().to_vec())]);
+    }
+    
+    let tree = obj
+        .peel_to_tree()
+        .map_err(|e| GitError::Git(e.to_string()))?;
+
+    let mut files: Vec<(String, Vec<u8>)> = Vec::new();
+    
+    let root_prefix = if let Some(p) = path {
+        let s = Path::new(p).file_name().and_then(|s| s.to_str()).unwrap_or("root");
+        format!("{}/", s)
+    } else {
+        String::new()
+    };
+
+    tree.walk(git2::TreeWalkMode::PreOrder, |dir, entry| {
+        if let Some(ObjectType::Blob) = entry.kind() {
+            let file_rel = match entry.name() {
+                Some(n) => {
+                    if dir.is_empty() {
+                        n.to_string()
+                    } else {
+                        format!("{}{}", dir, n)
+                    }
+                }
+                None => return 0,
+            };
+            if let Ok(blob) = repo.find_blob(entry.id()) {
+                let archive_path = format!("{}{}", root_prefix, file_rel);
+                files.push((archive_path, blob.content().to_vec()));
+            }
+        }
+        0
+    }).map_err(|e| GitError::Git(e.to_string()))?;
+
+    Ok(files)
+}
+
 pub async fn exists(user_id: &ObjectId, repo_id: &ObjectId) -> bool {
     let p = repo_path(user_id, repo_id);
     Repository::open_bare(&p).is_ok()

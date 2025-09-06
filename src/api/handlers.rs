@@ -324,6 +324,54 @@ pub async fn commits(
     }
 }
 
+// Download as ZIP
+#[utoipa::path(
+    get,
+    path = "/api/v1/download",
+    params(ContentQuery),
+    responses(
+        (status = 200, description = "ZIP archive of the specified path", content_type = "application/zip"),
+        (status = 400, description = "Invalid branch or revspec"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found")
+    ),
+    tag = "git"
+)]
+#[get("/api/v1/download")]
+pub async fn download(
+    db: web::Data<Database>,
+    req: HttpRequest,
+    query: web::Query<ContentQuery>,
+) -> impl Responder {
+    let requester = optional_requester(&db, &req).await;
+    match service::git_download(&db, requester, query.into_inner()).await {
+        Ok((filename, bytes)) => {
+            use actix_web::http::header::{ContentDisposition, DispositionType, DispositionParam};
+            let cd = ContentDisposition {
+                disposition: DispositionType::Attachment,
+                parameters: vec![DispositionParam::Filename(filename)],
+            };
+            HttpResponse::Ok()
+                .content_type("application/zip")
+                .insert_header(cd)
+                .body(bytes)
+        }
+        Err(msg) if msg == "forbidden" => {
+            if requester.is_none() {
+                HttpResponse::Unauthorized().json(error_message("unauthorized"))
+            } else {
+                HttpResponse::Forbidden().json(error_message("forbidden"))
+            }
+        }
+        Err(msg) if msg == "invalid branch or revspec" => {
+            HttpResponse::BadRequest().json(error_message("invalid branch or revspec"))
+        }
+        Err(msg) if msg == "repository not found" => HttpResponse::NotFound().json(error_message(&msg)),
+        Err(e) => to_http_500(e),
+    }
+}
+
 // ----------------- actix config -----------------
 
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -335,5 +383,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(list_repos)
         .service(branches)
         .service(content)
-        .service(commits);
+        .service(commits)
+        .service(download);
 }
