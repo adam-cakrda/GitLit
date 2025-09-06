@@ -116,8 +116,65 @@ impl GitConfig for WithAuth {
 
     async fn is_public_repo(&self, repo_path: &std::path::Path) -> bool {
         tracing::debug!("Checking if repo is public: {:?}", repo_path);
-        // TODO: check if repo is public
-        true
+        let components: Vec<String> = repo_path
+            .components()
+            .filter_map(|c| c.as_os_str().to_str().map(|s| s.to_string()))
+            .collect();
+
+        let (user_hex, repo_hex) = match components.iter().position(|c| c == "repos") {
+            Some(idx) if idx + 2 < components.len() => {
+                (components[idx + 1].clone(), components[idx + 2].clone())
+            }
+            _ => {
+                tracing::warn!("is_public_repo: could not locate repos/<user>/<repo> in path: {:?}", repo_path);
+                return false;
+            }
+        };
+
+        let user_oid = match mongodb::bson::oid::ObjectId::parse_str(&user_hex) {
+            Ok(oid) => oid,
+            Err(_) => {
+                tracing::warn!("is_public_repo: invalid user ObjectId '{}'", user_hex);
+                return false;
+            }
+        };
+        let repo_oid = match mongodb::bson::oid::ObjectId::parse_str(&repo_hex) {
+            Ok(oid) => oid,
+            Err(_) => {
+                tracing::warn!("is_public_repo: invalid repo ObjectId '{}'", repo_hex);
+                return false;
+            }
+        };
+
+        match self
+            .db
+            .repositories
+            .find_one(mongodb::bson::doc! { "_id": &repo_oid, "user": &user_oid })
+            .await
+        {
+            Ok(Some(repo)) => {
+                let public = !repo.is_private;
+                tracing::debug!(
+                    "is_public_repo: repo {} (user {}) is {}",
+                    repo_hex,
+                    user_hex,
+                    if public { "public" } else { "private" }
+                );
+                public
+            }
+            Ok(None) => {
+                tracing::warn!(
+                    "is_public_repo: repo not found for user={}, repo={}",
+                    user_hex,
+                    repo_hex
+                );
+                false
+            }
+            Err(e) => {
+                tracing::warn!("is_public_repo: DB error: {}", e);
+                false
+            }
+        }
     }
 
     async fn allow_anonymous(&self, op: GitOperation) -> bool {
