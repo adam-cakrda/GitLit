@@ -47,11 +47,8 @@ Build GitLit from the source and install dependencies:
 
 - [ ] Database
     - [x] MongoDB
-    - [ ] Postgres
-    - [ ] Mysql
-    - [ ] Sqlite
-    - [ ] and more ....
-
+    - [ ] Mysql? 
+  
 - [ ] Auth
     - [x] Register
     - [x] Login

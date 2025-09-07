@@ -10,7 +10,7 @@ mod frontend;
 use crate::git::*;
 use crate::db::Database;
 use std::env;
-
+use dotenvy;
 
 use actix_web::{web, App, HttpServer};
 use git_http_backend::actix::handler::ActixGitHttp;
@@ -19,7 +19,7 @@ use git_http_backend::config::GitHttpConfig;
 use std::io;
 use std::path::PathBuf;
 use std::fs;
-use log::{info, warn};
+use log::*;
 use utoipa::OpenApi;
 
 #[derive(utoipa::OpenApi)]
@@ -97,6 +97,7 @@ impl utoipa::Modify for SecurityAddon {
 #[tokio::main]
 pub async fn main() -> io::Result<()> {
     tracing_subscriber::fmt().init();
+    let _ = dotenvy::dotenv();
 
     let root = fs::canonicalize(PathBuf::from("./repos".to_string()))
         .unwrap_or_else(|_| PathBuf::from("./repos"));

@@ -11,6 +11,7 @@ pub enum AuthError {
     Internal(String),
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum GitError {
     #[error("I/O error: {0}")]

@@ -315,6 +315,7 @@ pub async fn collect_files_at_path(
     Ok(files)
 }
 
+#[allow(dead_code)]
 pub async fn exists(user_id: &ObjectId, repo_id: &ObjectId) -> bool {
     let p = repo_path(user_id, repo_id);
     Repository::open_bare(&p).is_ok()
