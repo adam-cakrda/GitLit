@@ -76,7 +76,7 @@ Build GitLit from the source and install dependencies:
         - [ ] IOS
       
 - [ ] Api
-    - [x] Documentation
+    - [x] Documentation - [gitlit.rostiapp.cz/api/docs/](https://gitlit.rostiapp.cz/api/docs/)
     - [x] v1
         - [x] login
         - [x] register
@@ -85,6 +85,8 @@ Build GitLit from the source and install dependencies:
         - [x] delete
         - [x] repos - get repos by filter
         - [x] branches
+          - [x] Show
+          - [ ] Delete
         - [x] commits
         - [x] content - of file or folder
         - [x] download as zip
@@ -115,6 +117,8 @@ Build GitLit from the source and install dependencies:
       - [x] Create
       - [ ] Delete
       - [x] Branches
+        - [x] Show
+        - [ ] Delete
       - [x] Commits
       - [x] Content
       - [ ] Issues
@@ -125,6 +129,8 @@ Build GitLit from the source and install dependencies:
     - [x] Create
     - [x] Delete
     - [x] Branches
+      - [x] Show
+      - [ ] Delete
     - [x] Commits
     - [x] Content
     - [ ] Issues
@@ -132,3 +138,4 @@ Build GitLit from the source and install dependencies:
     - [ ] and more ....
 
 ---
+
