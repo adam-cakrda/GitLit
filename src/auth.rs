@@ -1,3 +1,4 @@
+use std::env;
 use crate::db::Database;
 use crate::errors::AuthError;
 use crate::models::{User, Token};
@@ -20,6 +21,9 @@ fn dt_from_millis(ms: i64) -> DateTime {
 }
 
 pub async fn register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
+    if env::var("ALLOW_REGISTER").unwrap_or_else(|_| "false".to_string()) != "true" {
+        return Err(AuthError::RegistrationDisabled);
+    }
     let pw_len = password.chars().count();
     if pw_len < 8 || pw_len > 128 {
         return Err(AuthError::InvalidCredentials);

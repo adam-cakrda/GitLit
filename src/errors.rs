@@ -7,6 +7,8 @@ pub enum AuthError {
     InvalidAuthHeader,
     #[error("Unauthorized")]
     InvalidCredentials,
+    #[error("Registration disabled, please contact the administrator.")]
+    RegistrationDisabled,
     #[error("Internal Server Error: {0}")]
     Internal(String),
 }

@@ -6,6 +6,8 @@ use crate::db::Database;
 use crate::api::service;
 use crate::frontend::components;
 use crate::frontend::SERVE_PATH;
+use std::env;
+use crate::errors::AuthError;
 
 #[derive(serde::Deserialize)]
 pub struct LoginForm {
@@ -116,50 +118,56 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest) -> Result<H
             (components::head("Register - GitLit", html! {
                 link rel="stylesheet" href=(SERVE_PATH.to_string() + "/auth.css") {}
             }))
-            (components::body(html! {
-                main class="auth-container" {
-                    div class="auth-card" {
-                        div class="auth-header" {
-                            h1 { "Create your account" }
-                        }
-                        form class="auth-form" method="post" action="/register" {
-                            div class="form-group" {
-                                label for="username" { "Username" }
-                                input type="text" id="username" name="username" required {}
-                                div class="input-help" { "Choose a unique username for your profile" }
+            @if env::var("ALLOW_REGISTER").unwrap_or_else(|_| "false".to_string()) != "true" {
+                (components::body(html! {
+                    p { (AuthError::RegistrationDisabled.to_string()) }
+                }, None))
+            } @else {
+                (components::body(html! {
+                    main class="auth-container" {
+                        div class="auth-card" {
+                            div class="auth-header" {
+                                h1 { "Create your account" }
                             }
-                            div class="form-group" {
-                                label for="email" { "Email address" }
-                                input type="email" id="email" name="email" required {}
-                            }
-                            div class="form-group" {
-                                label for="password" { "Password" }
-                                input type="password" id="password" name="password" required {}
-                                div class="input-help" { "Must be at least 8 characters long" }
-                            }
-                            div class="form-group" {
-                                label for="confirm-password" { "Confirm password" }
-                                input type="password" id="confirm-password" name="confirm-password" required {}
-                            }
-                            div class="form-options" {
-                                label class="checkbox-label" {
-                                    input type="checkbox" name="terms" required {}
-                                    span class="checkmark" {}
-                                    "I agree to the "
-                                    a href="/terms" { "Terms of Service" }
-                                    " and "
-                                    a href="/privacy" { "Privacy Policy" }
+                            form class="auth-form" method="post" action="/register" {
+                                div class="form-group" {
+                                    label for="username" { "Username" }
+                                    input type="text" id="username" name="username" required {}
+                                    div class="input-help" { "Choose a unique username for your profile" }
                                 }
+                                div class="form-group" {
+                                    label for="email" { "Email address" }
+                                    input type="email" id="email" name="email" required {}
+                                }
+                                div class="form-group" {
+                                    label for="password" { "Password" }
+                                    input type="password" id="password" name="password" required {}
+                                    div class="input-help" { "Must be at least 8 characters long" }
+                                }
+                                div class="form-group" {
+                                    label for="confirm-password" { "Confirm password" }
+                                    input type="password" id="confirm-password" name="confirm-password" required {}
+                                }
+                                div class="form-options" {
+                                    label class="checkbox-label" {
+                                        input type="checkbox" name="terms" required {}
+                                        span class="checkmark" {}
+                                        "I agree to the "
+                                        a href="/terms" { "Terms of Service" }
+                                        " and "
+                                        a href="/privacy" { "Privacy Policy" }
+                                    }
+                                }
+                                button type="submit" class="auth-btn" { "Create account" }
                             }
-                            button type="submit" class="auth-btn" { "Create account" }
-                        }
-                        div class="auth-footer" {
-                            p { "Already have an account? " a href="/login" { "Sign in" } }
+                            div class="auth-footer" {
+                                p { "Already have an account? " a href="/login" { "Sign in" } }
+                            }
                         }
                     }
-                }
 
-            }, None))
+                }, None))
+            }
         }
     };
     Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(page.into_string()))
