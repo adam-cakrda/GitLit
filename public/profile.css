@@ -1,0 +1,160 @@
+:root {
+  --border: #21262d;
+  --hover: #1a1e24;
+  --accent: #58a6ff;
+  --card: #0f1115;
+  --sub: #a8b3cf;
+}
+
+body {
+  padding-top: 7rem;
+}
+
+.profile-page {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+.subheader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.subheader-left h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+.muted {
+  color: var(--sub);
+}
+
+.profile-sidebar {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  height: fit-content;
+}
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #11151b;
+  border: 1px solid var(--border);
+  margin: 0 auto 1rem auto;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 96px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #1f2937, #111827);
+}
+.profile-sidebar .meta {
+  color: var(--sub);
+  font-size: 0.95rem;
+}
+.profile-sidebar .meta p {
+  margin: 0.35rem 0;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.section-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.repo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+.repo-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+.repo-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-1px);
+  border-color: #2a3139;
+}
+.repo-primary {
+  min-width: 0;
+}
+.repo-name {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.repo-desc {
+  color: var(--sub);
+  margin: 0.35rem 0 0 0;
+}
+.repo-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--sub);
+  white-space: nowrap;
+}
+.badge {
+  background: var(--border);
+  color: var(--text);
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+  .profile-page {
+    grid-template-columns: 240px 1fr;
+  }
+  .avatar {
+    width: 180px;
+    height: 180px;
+  }
+}
+@media (max-width: 768px) {
+  .profile-page {
+    grid-template-columns: 1fr;
+  }
+  .subheader {
+    margin-bottom: 0;
+  }
+  .profile-sidebar {
+    order: 1;
+  }
+  .profile-content {
+    order: 2;
+  }
+}

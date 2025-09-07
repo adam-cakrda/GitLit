@@ -3,6 +3,7 @@ mod index;
 mod components;
 mod auth;
 mod repo;
+mod profile;
 
 use index::*;
 use actix_files::Files;
@@ -36,6 +37,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(repo::blob)
         .service(repo::commits)
         .service(repo::new::get)
-        .service(repo::new::post);
+        .service(repo::new::post)
+
+        .service(profile::user_profile);
 
 }

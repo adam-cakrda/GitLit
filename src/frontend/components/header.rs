@@ -21,7 +21,7 @@ pub fn header(display_name: Option<&str>) -> Markup {
                         div class="menu" {
                             div class="menu-name" { (name) }
                             div class="menu-options" {
-                                a class="menu-text" { "My Repositories" }
+                                a href=("/".to_string() + name) class="menu-text" { "My Repositories" }
                                 form method="post" class="menu-text" action="/logout" {
                                     button type="submit" class="red" { "Log Out" }
                                 }
@@ -40,7 +40,6 @@ pub fn header(display_name: Option<&str>) -> Markup {
     }
 }
 
-// ... existing code ...
 pub fn repo_header(
     display_name: Option<&str>,
     owner_slug: &str,
@@ -70,7 +69,7 @@ pub fn repo_header(
                         div class="menu" {
                             div class="menu-name" { (name) }
                             div class="menu-options" {
-                                a class="menu-text" { "My Repositories" }
+                                a href=("/".to_string() + name) class="menu-text" { "My Repositories" }
                                 form method="post" class="menu-text" action="/logout" {
                                     button type="submit" class="red" { "Log Out" }
                                 }

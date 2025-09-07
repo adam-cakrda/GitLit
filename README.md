@@ -68,6 +68,15 @@ Build GitLit from the source and install dependencies:
         - [ ] Password
         - [ ] Email
         - [ ] Username
+
+- [ ] Application
+    - [ ] Desktop 
+        - [ ] Windows
+        - [ ] Linux
+        - [ ] MacOS
+    - [ ] Mobile
+        - [ ] Android
+        - [ ] IOS
       
 - [ ] Api
     - [x] Documentation
@@ -83,6 +92,11 @@ Build GitLit from the source and install dependencies:
         - [x] content - of file or folder
         - [x] download as zip
     - [ ] v2
+        - [ ] login
+          - [ ] 2fa
+          - [ ] remember me
+        - [ ] register
+            - [ ] 2fa
         - [ ] search
         - [ ] issues
         - [ ] pull requests
@@ -94,6 +108,11 @@ Build GitLit from the source and install dependencies:
     - [x] Logout
     - [ ] Error pages
     - [ ] Search
+    - [ ] Profile
+        - [x] Repositories
+        - [ ] Picture
+        - [ ] Activity
+        - [ ] and more ....
     - [x] Home
     - [x] Repo
       - [x] Create
