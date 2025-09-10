@@ -25,6 +25,7 @@ pub struct CreateRepoRequest {
 }
 
 #[derive(Debug, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct DeleteQuery {
     pub id: String,
 }
