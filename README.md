@@ -1,5 +1,5 @@
 # GitLit
-<img src="https://raw.githubusercontent.com/adam-cakrda/GitLit/refs/heads/master/public/gitlit.svg" alt="GitLit Logo" width="100">
+![logo](https://raw.githubusercontent.com/adam-cakrda/GitLit/refs/heads/master/public/gitlit.svg)
 
 A simple github alternative written in rust
 
@@ -17,6 +17,21 @@ A simple github alternative written in rust
     - [TODO](#todo)
 
 ---
+
+## Security and Deployment
+
+GitLit can be run on a public server. Private repositories are stored under the repos directory on disk and are not served as static files. Git over HTTP requests are handled by git_http_backend with an authentication layer (Basic auth for Git operations). Access to a private repository over HTTP is denied unless the request is authenticated. Public repositories can be read anonymously; private repositories require authentication.
+
+Important recommendations for running on a public server:
+- Do not expose your database to the internet. Bind MongoDB to localhost or a private network and use a firewall.
+- Always run behind HTTPS (e.g., via a reverse proxy like Nginx, Caddy, or Traefik). Basic auth must be protected by TLS.
+- Keep the repos directory accessible only to the GitLit process user. Do not mount it via a static file server or CDN.
+- Keep .env/my.env and other secrets out of version control and out of your web root. They are now ignored in .gitignore by default.
+- Use strong, unique passwords. Consider enabling additional factors when implemented.
+- Validate that your PORT/address binding matches your threat model (the default binds to localhost; expose explicitly via a reverse proxy).
+- Regularly update dependencies and rotate tokens/passwords.
+
+If these practices are followed, storing private repositories on a public server is supported by GitLit’s current design.
 
 ## Getting Started
 
