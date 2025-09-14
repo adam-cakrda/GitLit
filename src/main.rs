@@ -8,7 +8,7 @@ mod repo;
 mod frontend;
 
 use crate::git::*;
-use crate::db::Database;
+use db::Database;
 use std::env;
 use dotenvy;
 
