@@ -34,7 +34,7 @@ impl Database {
         }
     }
 
-    pub async fn create_user(&self, user: User) -> Result<InsertOneResult, mongodb::error::Error> {
+    pub async fn create_user(&self, user: User) -> mongodb::error::Result<InsertOneResult> {
         let result = self
             .users
             .insert_one(user)
@@ -46,7 +46,7 @@ impl Database {
         Ok(result)
     }
 
-    pub async fn create_repository(&self, repository: Repository) -> Result<InsertOneResult, mongodb::error::Error> {
+    pub async fn create_repository(&self, repository: Repository) -> mongodb::error::Result<InsertOneResult> {
         let result = self
             .repositories
             .insert_one(repository)
