@@ -2,9 +2,10 @@ use std::env;
 use crate::db::Database;
 use crate::errors::AuthError;
 use crate::models::{User, Token};
-use mongodb::bson::{oid::ObjectId, DateTime};
+use mongodb::bson::oid::ObjectId;
 use uuid::Uuid;
 use bcrypt::{hash, verify, DEFAULT_COST};
+use chrono::{DateTime as ChronoDateTime, Utc};
 
 const TOKEN_TTL_SECS: i64 = 24 * 60 * 60; // 24 hours
 
@@ -16,8 +17,8 @@ fn now_millis() -> i64 {
         .as_millis() as i64
 }
 
-fn dt_from_millis(ms: i64) -> DateTime {
-    DateTime::from_millis(ms)
+fn dt_from_millis(ms: i64) -> ChronoDateTime<Utc> {
+    ChronoDateTime::<Utc>::from_timestamp_millis(ms).unwrap_or_else(|| Utc::now())
 }
 
 pub async fn register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
@@ -46,7 +47,7 @@ pub async fn register(db: &Database, username: String, email: String, password: 
     let now = now_millis();
 
     let user = User {
-        _id: ObjectId::new(),
+        _id: ObjectId::new().to_string(),
         username: username.clone(),
         email: email.clone(),
         password: password_hash,
@@ -80,7 +81,7 @@ pub async fn login(db: &Database, login: String, password: String) -> Result<Str
 
     let token_value = Uuid::new_v4().to_string();
     let token = Token {
-        _id: ObjectId::new(),
+        _id: ObjectId::new().to_string(),
         user: user._id,
         token: token_value.clone(),
         created_at: dt_from_millis(now),
@@ -107,7 +108,7 @@ pub async fn logout(db: &Database, token: String) -> Result<(), AuthError> {
     Ok(())
 }
 
-pub async fn auth(db: &Database, token: String) -> Result<ObjectId, AuthError> {
+pub async fn auth(db: &Database, token: String) -> Result<String, AuthError> {
     let t = db
         .find_token(&token)
         .await

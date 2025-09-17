@@ -1,14 +1,13 @@
-use mongodb::bson::oid::ObjectId;
 use std::path::{PathBuf};
 use crate::errors::GitError;
 use crate::models::*;
 use git2::{BranchType, ObjectType, Repository, Sort};
 
-pub fn repo_path(user_id: &ObjectId, repo_id: &ObjectId) -> PathBuf {
-    PathBuf::from("./repos").join(user_id.to_hex()).join(repo_id.to_hex())
+pub fn repo_path(user_id: &String, repo_id: &String) -> PathBuf {
+    PathBuf::from("./repos").join(user_id).join(repo_id)
 }
 
-pub async fn init(user_id: ObjectId, repo_id: ObjectId) -> Result<PathBuf, GitError> {
+pub async fn init(user_id: String, repo_id: String) -> Result<PathBuf, GitError> {
     let path = repo_path(&user_id, &repo_id);
     if let Some(parent) = path.parent() {
         tokio::fs::create_dir_all(parent).await?;
@@ -19,8 +18,8 @@ pub async fn init(user_id: ObjectId, repo_id: ObjectId) -> Result<PathBuf, GitEr
 }
 
 pub async fn list_branches(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
 ) -> Result<Vec<Branch>, GitError> {
     let repo_path = repo_path(user_id, repo_id);
     let repo = Repository::open_bare(&repo_path).map_err(|e| GitError::Git(e.to_string()))?;
@@ -67,8 +66,8 @@ pub async fn list_branches(
     Ok(out)
 }
 pub async fn list_commits(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
     reference: &str,
     branch: Option<&str>,
     limit: usize,
@@ -118,8 +117,8 @@ pub async fn list_commits(
 }
 
 pub async fn list_tree(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
     rev: &str,
     branch: Option<&str>,
     path: Option<&str>,
@@ -180,8 +179,8 @@ pub async fn list_tree(
 }
 
 pub async fn get_file_content(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
     rev: &str,
     branch: Option<&str>,
     path: &str,
@@ -202,8 +201,8 @@ pub async fn get_file_content(
 }
 
 pub async fn commit_diff(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
     commit_hash: &str,
 ) -> Result<String, GitError> {
     use git2::{Oid, DiffOptions, DiffFormat};
@@ -244,8 +243,8 @@ pub async fn commit_diff(
 }
 
 pub async fn collect_files_at_path(
-    user_id: &ObjectId,
-    repo_id: &ObjectId,
+    user_id: &String,
+    repo_id: &String,
     rev: &str,
     branch: Option<&str>,
     path: Option<&str>,
@@ -316,7 +315,7 @@ pub async fn collect_files_at_path(
 }
 
 #[allow(dead_code)]
-pub async fn exists(user_id: &ObjectId, repo_id: &ObjectId) -> bool {
+pub async fn exists(user_id: &String, repo_id: &String) -> bool {
     let p = repo_path(user_id, repo_id);
     Repository::open_bare(&p).is_ok()
 }

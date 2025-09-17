@@ -2,7 +2,6 @@ use actix_web::{get, Result, web, HttpRequest};
 use maud::{DOCTYPE, html, Markup};
 
 use crate::db::Database;
-use mongodb::bson::{oid::ObjectId};
 use std::collections::HashMap;
 use crate::api::service;
 use crate::models::ReposQuery;
@@ -25,18 +24,18 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
 
     let repos: Vec<crate::models::Repository> = repos_all.into_iter().take(12).collect();
 
-    let mut owner_ids: Vec<ObjectId> = Vec::new();
+    let mut owner_ids: Vec<String> = Vec::new();
     for r in &repos {
         if !owner_ids.contains(&r.user) {
-            owner_ids.push(r.user);
+            owner_ids.push(r.user.clone());
         }
     }
 
-    let mut usernames: HashMap<ObjectId, String> = HashMap::new();
+    let mut usernames: HashMap<String, String> = HashMap::new();
     for uid in &owner_ids {
         match service::username_by_id(&db, uid).await {
             Ok(Some(name)) => {
-                usernames.insert(*uid, name);
+                usernames.insert(uid.to_string(), name);
             }
             Ok(None) => {}
             Err(e) => {
@@ -49,8 +48,7 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
         Some(token) => {
             match service::get_user_id_from_token(&db, token).await {
                 Ok(user_id) => {
-                    use mongodb::bson::doc;
-                    match db.users.find_one(doc! { "_id": &user_id }).await {
+                    match db.find_user_by_id(&user_id).await {
                         Ok(Some(u)) => Some(u.display_name),
                         _ => None,
                     }

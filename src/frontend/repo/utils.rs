@@ -3,7 +3,6 @@ use crate::db::Database;
 use crate::frontend::components;
 use crate::frontend::SERVE_PATH;
 use crate::repo;
-use mongodb::bson::doc;
 use maud::{Markup, html, PreEscaped, DOCTYPE};
 use crate::api::service;
 
@@ -15,12 +14,10 @@ pub fn is_hex_hash(s: &str) -> bool {
 pub async fn token_display(db: &Database, req: &actix_web::HttpRequest) -> Option<String> {
     match crate::frontend::token_from_req(req) {
         Some(token) => match service::get_user_id_from_token(db, token).await {
-            Ok(user_id) => {
-                match db.users.find_one(doc!{ "_id": &user_id }).await {
-                    Ok(Some(u)) => Some(u.display_name),
-                    _ => None,
-                }
-            }
+            Ok(user_id) => match db.find_user_by_id(&user_id).await {
+                Ok(Some(u)) => Some(u.display_name),
+                _ => None,
+            },
             Err(_) => None,
         },
         None => None,
@@ -38,8 +35,7 @@ pub async fn resolve_owner_repo(
         .ok_or_else(|| actix_web::error::ErrorNotFound("owner not found"))?;
 
     let repo = db
-        .repositories
-        .find_one(doc! { "user": &owner._id, "name": reponame })
+        .find_repo_by_user_and_name(&owner._id, reponame)
         .await
         .map_err(actix_web::error::ErrorInternalServerError)?
         .ok_or_else(|| actix_web::error::ErrorNotFound("repository not found"))?;
