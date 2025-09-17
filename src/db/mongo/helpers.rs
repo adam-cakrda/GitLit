@@ -1,11 +1,10 @@
 use mongodb::bson::doc;
 use mongodb::results::InsertOneResult;
 use tracing::info;
-use crate::db;
 use crate::models as apim;
-use crate::db::exporters;
+use super::exporters;
 
-impl db::Database {
+impl super::Database {
     pub async fn create_user(&self, user: apim::User) -> mongodb::error::Result<InsertOneResult> {
         let result = self
             .users
@@ -97,7 +96,7 @@ impl db::Database {
     ) -> mongodb::error::Result<Vec<apim::Repository>> {
         use futures_util::TryStreamExt;
         let cursor = self.repositories.find(filter).sort(sort).await?;
-        let repos_db: Vec<crate::db::models::Repository> = cursor.try_collect().await?;
+        let repos_db: Vec<super::models::Repository> = cursor.try_collect().await?;
         let repos: Vec<apim::Repository> = repos_db
             .into_iter()
             .map(exporters::from_mongodb_to_repository)
@@ -105,4 +104,3 @@ impl db::Database {
         Ok(repos)
     }
 }
-

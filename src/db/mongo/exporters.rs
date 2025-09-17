@@ -1,4 +1,4 @@
-use crate::db::models as dbm;
+use super::models as dbm;
 use crate::models as apim;
 
 pub fn from_mongodb_to_user(user: dbm::User) -> apim::User {
