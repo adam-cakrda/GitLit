@@ -47,7 +47,7 @@ Build GitLit from the source and install dependencies:
 
 - [ ] Database
     - [x] MongoDB
-    - [ ] Mysql? 
+    - [x] Mysql 
   
 - [ ] Auth
     - [x] Register
@@ -138,4 +138,5 @@ Build GitLit from the source and install dependencies:
     - [ ] and more ....
 
 ---
+
 
