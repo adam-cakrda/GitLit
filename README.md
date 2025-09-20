@@ -82,7 +82,7 @@ Build GitLit from the source and install dependencies:
         - [x] repos - get repos by filter
         - [x] branches
           - [x] Show
-          - [ ] Delete
+          - [x] Delete
         - [x] commits
         - [x] content - of file or folder
         - [x] download as zip
@@ -126,7 +126,7 @@ Build GitLit from the source and install dependencies:
     - [x] Delete
     - [x] Branches
       - [x] Show
-      - [ ] Delete
+      - [x] Delete
     - [x] Commits
     - [x] Content
     - [ ] Issues

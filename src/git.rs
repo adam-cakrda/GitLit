@@ -7,7 +7,6 @@ use http_auth_basic::Credentials;
 use crate::db::Database;
 use crate::repo::repo_path;
 use bcrypt::verify;
-use mongodb::bson::doc;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

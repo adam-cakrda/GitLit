@@ -102,7 +102,7 @@ pub async fn repo_list(
     requester_user_id: Option<String>,
     query: ReposQuery,
 ) -> Result<Vec<Repository>, String> {
-    use futures_util::TryStreamExt;
+    
     use mongodb::bson::doc;
 
     let owner_user_id: Option<String> = if let Some(owner_username) = &query.owner {
@@ -174,15 +174,34 @@ async fn resolve_repo_by_id(db: &Database, repo_id_hex: &str) -> Result<Reposito
 pub async fn git_branches(
     db: &Database,
     requester_user_id: Option<String>,
-    repo_id_hex: &str,
+    id: &String,
 ) -> Result<Vec<Branch>, String> {
-    let repo = resolve_repo_by_id(db, repo_id_hex).await?;
+    let repo = resolve_repo_by_id(db, id).await?;
     let can_see = requester_user_id == Some(repo.user.clone());
     if repo.is_private && !can_see {
         return Err("forbidden".into());
     }
     crate::repo::list_branches(&repo.user, &repo._id).await.map_err(|e| e.to_string())
 }
+
+pub async fn git_remove_branch(
+    db: &Database,
+    requester_user_id: Option<String>,
+    id: &String,
+    branch: &String,
+) -> Result<(), String> {
+    let repo = resolve_repo_by_id(db, id).await?;
+
+    let can_edit = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_edit {
+        return Err("forbidden".into());
+    }
+
+    crate::repo::delete_branch(&repo.user, &repo._id, branch)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 
 pub async fn git_content(
     db: &Database,

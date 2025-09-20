@@ -8,6 +8,7 @@
         crate::api::delete_repo,
         crate::api::list_repos,
         crate::api::branches,
+        crate::api::delete_branch,
         crate::api::content,
         crate::api::commits,
         crate::api::download
@@ -23,6 +24,7 @@
             crate::models::OkResponse,
             crate::models::ReposQuery,
             crate::models::BranchesQuery,
+            crate::models::DeleteBranchQuery,
             crate::models::BranchesResponse,
             crate::models::ContentQuery,
             crate::models::ContentResponse,

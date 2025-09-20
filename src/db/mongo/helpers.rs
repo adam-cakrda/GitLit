@@ -91,7 +91,7 @@ impl super::Database {
 
     pub async fn find_repos_with_filter_sort(
         &self,
-        mut filter: bson::Document,
+        filter: bson::Document,
         sort: bson::Document,
     ) -> mongodb::error::Result<Vec<apim::Repository>> {
         use futures_util::TryStreamExt;

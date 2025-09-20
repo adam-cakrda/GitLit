@@ -50,6 +50,13 @@ pub struct BranchesQuery {
     pub id: String,
 }
 
+#[derive(Debug, Deserialize, utoipa::ToSchema, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct DeleteBranchQuery {
+    pub id: String,
+    pub branch: String,
+}
+
 #[derive(Debug, Serialize, utoipa::ToSchema)]
 pub struct BranchesResponse {
     pub branches: Vec<crate::models::Branch>,

@@ -65,6 +65,33 @@ pub async fn list_branches(
 
     Ok(out)
 }
+
+pub async fn delete_branch(
+    user_id: &String,
+    repo_id: &String,
+    branch_name: &String,
+) -> Result<(), GitError> {
+    let repo_path = repo_path(user_id, repo_id);
+    let repo = Repository::open_bare(&repo_path).map_err(|e| GitError::Git(e.to_string()))?;
+
+    let mut branch = repo
+        .find_branch(branch_name, BranchType::Local)
+        .map_err(|e| GitError::Git(format!("failed to find branch '{}': {}", branch_name, e)))?;
+
+    if branch.is_head() {
+        return Err(GitError::Git(format!(
+            "cannot delete branch '{}': it is the current HEAD",
+            branch_name
+        )));
+    }
+
+    branch
+        .delete()
+        .map_err(|e| GitError::Git(format!("failed to delete branch '{}': {}", branch_name, e)))?;
+
+    Ok(())
+}
+
 pub async fn list_commits(
     user_id: &String,
     repo_id: &String,

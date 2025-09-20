@@ -3,11 +3,7 @@ use actix_web::{get, post, delete, web, HttpRequest, HttpResponse, Responder};
 use crate::db::Database;
 use crate::errors::AuthError;
 use crate::api::service;
-use crate::models::{
-    LoginRequest, LoginResponse, RegisterRequest, CreateRepoRequest, DeleteQuery, OkResponse,
-    ReposQuery, BranchesQuery, BranchesResponse, ContentQuery, ContentResponse, CommitsQuery,
-    ErrorResponse, Repository, CommitInfo,
-};
+use crate::models::*;
 
 // ----------------- helpers -----------------
 
@@ -256,6 +252,48 @@ pub async fn branches(db: web::Data<Database>, req: HttpRequest, query: web::Que
 }
 
 #[utoipa::path(
+    delete,
+    path = "/api/v1/branch",
+    params(DeleteBranchQuery),
+    responses(
+        (status = 200, description = "Branch deleted"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found"),
+        (status = 400, description = "Bad request")
+    ),
+    tag = "git"
+)]
+#[delete("/api/v1/branch")]
+pub async fn delete_branch(
+    db: web::Data<Database>,
+    req: HttpRequest,
+    query: web::Query<DeleteBranchQuery>,
+) -> impl Responder {
+    let requester = optional_requester(&db, &req).await;
+
+    match service::git_remove_branch(&db, requester.clone(), &query.id, &query.branch).await {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+            "message": format!("Branch '{}' deleted", query.branch)
+        })),
+        Err(msg) if msg == "forbidden" => {
+            if requester.is_none() {
+                HttpResponse::Unauthorized().json(error_message("unauthorized"))
+            } else {
+                HttpResponse::Forbidden().json(error_message("forbidden"))
+            }
+        }
+        Err(msg) if msg == "repository not found" => {
+            HttpResponse::NotFound().json(error_message(&msg))
+        }
+        Err(msg) if msg.contains("cannot delete branch") => {
+            HttpResponse::BadRequest().json(error_message(&msg))
+        }
+        Err(e) => to_http_500(e),
+    }
+}
+
+#[utoipa::path(
     get,
     path = "/api/v1/content",
     params(ContentQuery),
@@ -383,6 +421,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(delete_repo)
         .service(list_repos)
         .service(branches)
+        .service(delete_branch)       
         .service(content)
         .service(commits)
         .service(download);
