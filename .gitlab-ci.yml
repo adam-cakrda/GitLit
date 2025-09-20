@@ -1,0 +1,52 @@
+stages:
+  - build
+  - test
+  - package
+
+variables:
+  CARGO_TERM_COLOR: always
+
+.default-rust-job:
+  stage: build
+  script:
+    - rustc --version
+    - cargo build --release --verbose
+  artifacts:
+    paths:
+      - target/release/
+    expire_in: 1 week
+
+build:linux:
+  extends: .default-rust-job
+  image: rust:latest
+
+build:macos:
+  extends: .default-rust-job
+  tags:
+    - macos
+
+build:windows:
+  extends: .default-rust-job
+  tags:
+    - windows
+
+
+test:linux:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo test --release --verbose
+
+
+package:
+  stage: package
+  script:
+    - echo "Packaging build artifacts..."
+  dependencies:
+    - build:linux
+    - build:macos
+    - build:windows
+  artifacts:
+    paths:
+      - target/release/
+    expire_in: 1 week
