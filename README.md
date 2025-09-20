@@ -7,7 +7,9 @@ A simple github alternative written in rust
 > Features may be incomplete, unstable, or subject to change at any time.
 
 ![last-commit](https://img.shields.io/gitlab/last-commit/adam-cakrda/GitLit?style=flat&logo=git&logoColor=white&color=0080ff)
-![repo-top-language](https://img.shields.io/gitlab/languages/top/adam-cakrda/GitLit?style=flat&color=0080ff)
+![GitLab Top Language](https://img.shields.io/gitlab/languages/adam-cakrda%2FGitLit)
+![GitLab License](https://img.shields.io/gitlab/license/adam-cakrda%2Fgitlit?color=green)
+![pipeline status](https://gitlab.com/adam-cakrda/GitLit/badges/master/pipeline.svg)](https://gitlab.com/adam-cakrda/GitLit/-/commits/master)
 
 ---
 
@@ -116,7 +118,7 @@ Build GitLit from the source and install dependencies:
       - [ ] Delete
       - [x] Branches
         - [x] Show
-        - [ ] Delete
+        - [x] Delete
       - [x] Commits
       - [x] Content
       - [ ] Issues
