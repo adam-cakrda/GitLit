@@ -6,10 +6,8 @@ A simple github alternative written in rust
 > ⚠️ **Warning:** GitLit is still in **early development**.  
 > Features may be incomplete, unstable, or subject to change at any time.
 
-![last-commit](https://img.shields.io/github/last-commit/adam-cakrda/GitLit?style=flat&logo=git&logoColor=white&color=0080ff)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/adam-cakrda/GitLit)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/adam-cakrda/GitLit/.github%2Fworkflows%2Frust.yml)
-![repo-top-language](https://img.shields.io/github/languages/top/adam-cakrda/GitLit?style=flat&color=0080ff)
+![last-commit](https://img.shields.io/gitlab/last-commit/adam-cakrda/GitLit?style=flat&logo=git&logoColor=white&color=0080ff)
+![repo-top-language](https://img.shields.io/gitlab/languages/top/adam-cakrda/GitLit?style=flat&color=0080ff)
 
 ---
 
@@ -70,8 +68,8 @@ Build GitLit from the source and install dependencies:
         - [ ] Username
 
 - [ ] Application
-    - [x] CLI - [github.com/adam-cakrda/GitLit-CLI](https://github.com/adam-cakrda/GitLit-CLI)
-    - [ ] Desktop - In work - [github.com/adam-cakrda/GitLit-Desktop](https://github.com/adam-cakrda/GitLit-Desktop)
+    - [x] CLI - [gitlab.com/adam-cakrda/GitLit-CLI](https://gitlab.com/adam-cakrda/GitLit-CLI)
+    - [ ] Desktop - In work - [gitlab.com/adam-cakrda/GitLit-Desktop](https://gitlab.com/adam-cakrda/GitLit-Desktop)
     - [ ] Mobile
     - [ ] Server config  
       
