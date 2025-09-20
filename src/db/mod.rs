@@ -10,8 +10,6 @@ pub enum DbError {
     Mongo(#[from] mongodb::error::Error),
     #[error("SQLx error: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("Other: {0}")]
-    Other(String),
 }
 
 #[derive(Clone, Debug)]

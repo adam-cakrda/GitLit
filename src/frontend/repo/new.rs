@@ -11,7 +11,7 @@ pub struct NewRepoForm {
     pub name: String,
     pub description: Option<String>,
     pub visibility: Option<String>,
-    pub init_readme: Option<String>, //TODO: INIT README
+    //pub init_readme: Option<String>, TODO: INIT README
 }
 
 #[post("/new")]

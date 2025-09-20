@@ -61,6 +61,12 @@ pub async fn index(
                                             }
                                         }
                                     }
+                                    li {
+                                        hr {};
+                                        a class="see-all-branches" href={(format!("/{}/{}/branches", owner.username, repo.name))} {
+                                            "See all branches"
+                                        }
+                                    }
                                 }
                             }
                             div class="commit-info" { "" }
