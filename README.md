@@ -3,6 +3,9 @@
 
 A simple github alternative written in rust
 
+> ⚠️ **Warning:** GitLit is still in **early development**.  
+> Features may be incomplete, unstable, or subject to change at any time.
+
 ![last-commit](https://img.shields.io/github/last-commit/adam-cakrda/GitLit?style=flat&logo=git&logoColor=white&color=0080ff)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/adam-cakrda/GitLit)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/adam-cakrda/GitLit/.github%2Fworkflows%2Frust.yml)
