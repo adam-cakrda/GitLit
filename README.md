@@ -67,9 +67,10 @@ Build GitLit from the source and install dependencies:
         - [ ] Username
 
 - [ ] Application
-    - [ ] CLI - [github.com/adam-cakrda/GitLit-CLI](https://github.com/adam-cakrda/GitLit-CLI)
+    - [x] CLI - [github.com/adam-cakrda/GitLit-CLI](https://github.com/adam-cakrda/GitLit-CLI)
     - [ ] Desktop - In work - [github.com/adam-cakrda/GitLit-Desktop](https://github.com/adam-cakrda/GitLit-Desktop)
     - [ ] Mobile
+    - [ ] Server config  
       
 - [ ] Api
     - [x] Documentation - [gitlit.rostiapp.cz/api/docs/](https://gitlit.rostiapp.cz/api/docs/)
