@@ -10,6 +10,9 @@ use std::env;
 use crate::errors::AuthError;
 
 #[derive(serde::Deserialize)]
+struct ErrorQuery { error: Option<String> }
+
+#[derive(serde::Deserialize)]
 pub struct LoginForm {
     pub login: String,
     pub password: String,
@@ -35,7 +38,7 @@ async fn redirect_if_logged(db: &Database, req: &HttpRequest) -> Option<HttpResp
 }
 
 #[get("/login")]
-pub async fn get_login(db: web::Data<Database>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn get_login(db: web::Data<Database>, req: HttpRequest, query: web::Query<ErrorQuery>) -> Result<HttpResponse> {
     if let Some(resp) = redirect_if_logged(&db, &req).await {
         return Ok(resp);
     }
@@ -50,6 +53,9 @@ pub async fn get_login(db: web::Data<Database>, req: HttpRequest) -> Result<Http
                     div class="auth-card" {
                         div class="auth-header" {
                             h1 { "Log in" }
+                        }
+                        @if let Some(err) = &query.error {
+                            (components::alert(components::AlertKind::Error, err))
                         }
                         form class="auth-form" method="post" action="/login" {
                             div class="form-group" {
@@ -101,14 +107,14 @@ pub async fn post_login(db: web::Data<Database>, form: web::Form<LoginForm>) -> 
         }
         Err(_) => {
             Ok(HttpResponse::SeeOther()
-                .insert_header((LOCATION, "/login"))
+                .insert_header((LOCATION, "/login?error=Invalid%20credentials"))
                 .finish())
         }
     }
 }
 
 #[get("/register")]
-pub async fn get_register(db: web::Data<Database>, req: HttpRequest) -> Result<HttpResponse> {
+pub async fn get_register(db: web::Data<Database>, req: HttpRequest, query: web::Query<ErrorQuery>) -> Result<HttpResponse> {
     if let Some(resp) = redirect_if_logged(&db, &req).await {
         return Ok(resp);
     }
@@ -120,7 +126,9 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest) -> Result<H
             }))
             @if env::var("ALLOW_REGISTER").unwrap_or_else(|_| "false".to_string()) != "true" {
                 (components::body(html! {
-                    p { (AuthError::RegistrationDisabled.to_string()) }
+                    main class="auth-container" { div class="auth-card" {
+                        (components::alert(components::AlertKind::Warning, &AuthError::RegistrationDisabled.to_string()))
+                    }}
                 }, None))
             } @else {
                 (components::body(html! {
@@ -128,6 +136,9 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest) -> Result<H
                         div class="auth-card" {
                             div class="auth-header" {
                                 h1 { "Create your account" }
+                            }
+                            @if let Some(err) = &query.error {
+                                (components::alert(components::AlertKind::Error, err))
                             }
                             form class="auth-form" method="post" action="/register" {
                                 div class="form-group" {
@@ -183,7 +194,7 @@ pub async fn post_register(db: web::Data<Database>, form: web::Form<RegisterForm
         }
         Err(_) => {
             Ok(HttpResponse::SeeOther()
-                .insert_header((LOCATION, "/register"))
+                .insert_header((LOCATION, "/register?error=Registration%20failed"))
                 .finish())
         }
     }

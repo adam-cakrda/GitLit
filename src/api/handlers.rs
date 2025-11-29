@@ -1,14 +1,11 @@
 use actix_web::{get, post, delete, web, HttpRequest, HttpResponse, Responder};
-use mongodb::bson::oid::ObjectId;
 
 use crate::db::Database;
 use crate::errors::AuthError;
 use crate::api::service;
-use crate::models::{
-    LoginRequest, LoginResponse, RegisterRequest, CreateRepoRequest, DeleteQuery, OkResponse,
-    ReposQuery, BranchesQuery, BranchesResponse, ContentQuery, ContentResponse, CommitsQuery,
-    ErrorResponse, Repository, CommitInfo,
-};
+use crate::models::*;
+use bson::oid::ObjectId;
+use crate::db::Repository;
 
 // ----------------- helpers -----------------
 
@@ -36,7 +33,9 @@ fn bearer_token(req: &HttpRequest) -> Result<String, AuthError> {
 
 async fn optional_requester(db: &Database, req: &HttpRequest) -> Option<ObjectId> {
     match bearer_token(req) {
-        Ok(token) => service::get_user_id_from_token(db, token).await.ok(),
+        Ok(token) => service::get_user_id_from_token(db, token)
+            .await
+            .ok(),
         Err(_) => None,
     }
 }
@@ -240,7 +239,7 @@ pub async fn list_repos(db: web::Data<Database>, req: HttpRequest, query: web::Q
 #[get("/api/v1/branches")]
 pub async fn branches(db: web::Data<Database>, req: HttpRequest, query: web::Query<BranchesQuery>) -> impl Responder {
     let requester = optional_requester(&db, &req).await;
-    match service::git_branches(&db, requester, &query.id).await {
+    match service::git_branches(&db, requester.clone(), &query.id).await {
         Ok(list) => HttpResponse::Ok().json(BranchesResponse { branches: list }),
         Err(msg) if msg == "forbidden" => {
             if requester.is_none() {
@@ -250,6 +249,48 @@ pub async fn branches(db: web::Data<Database>, req: HttpRequest, query: web::Que
             }
         }
         Err(msg) if msg == "repository not found" => HttpResponse::NotFound().json(error_message(&msg)),
+        Err(e) => to_http_500(e),
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/api/v1/branch",
+    params(DeleteBranchQuery),
+    responses(
+        (status = 200, description = "Branch deleted"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 404, description = "Repository not found"),
+        (status = 400, description = "Bad request")
+    ),
+    tag = "git"
+)]
+#[delete("/api/v1/branch")]
+pub async fn delete_branch(
+    db: web::Data<Database>,
+    req: HttpRequest,
+    query: web::Query<DeleteBranchQuery>,
+) -> impl Responder {
+    let requester = optional_requester(&db, &req).await;
+
+    match service::git_remove_branch(&db, requester.clone(), &query.id, &query.branch).await {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+            "message": format!("Branch '{}' deleted", query.branch)
+        })),
+        Err(msg) if msg == "forbidden" => {
+            if requester.is_none() {
+                HttpResponse::Unauthorized().json(error_message("unauthorized"))
+            } else {
+                HttpResponse::Forbidden().json(error_message("forbidden"))
+            }
+        }
+        Err(msg) if msg == "repository not found" => {
+            HttpResponse::NotFound().json(error_message(&msg))
+        }
+        Err(msg) if msg.contains("cannot delete branch") => {
+            HttpResponse::BadRequest().json(error_message(&msg))
+        }
         Err(e) => to_http_500(e),
     }
 }
@@ -273,7 +314,7 @@ pub async fn content(
     query: web::Query<ContentQuery>,
 ) -> impl Responder {
     let requester = optional_requester(&db, &req).await;
-    match service::git_content(&db, requester, query.into_inner()).await {
+    match service::git_content(&db, requester.clone(), query.into_inner()).await {
         Ok(res) => HttpResponse::Ok().json(res),
         Err(msg) if msg == "forbidden" => {
             if requester.is_none() {
@@ -307,7 +348,7 @@ pub async fn commits(
     query: web::Query<CommitsQuery>,
 ) -> impl Responder {
     let requester = optional_requester(&db, &req).await;
-    match service::git_commits(&db, requester, query.into_inner()).await {
+    match service::git_commits(&db, requester.clone(), query.into_inner()).await {
         Ok(list) => HttpResponse::Ok().json(list),
         Err(msg) if msg == "forbidden" => {
             if requester.is_none() {
@@ -345,7 +386,7 @@ pub async fn download(
     query: web::Query<ContentQuery>,
 ) -> impl Responder {
     let requester = optional_requester(&db, &req).await;
-    match service::git_download(&db, requester, query.into_inner()).await {
+    match service::git_download(&db, requester.clone(), query.into_inner()).await {
         Ok((filename, bytes)) => {
             use actix_web::http::header::{ContentDisposition, DispositionType, DispositionParam};
             let cd = ContentDisposition {
@@ -382,6 +423,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(delete_repo)
         .service(list_repos)
         .service(branches)
+        .service(delete_branch)       
         .service(content)
         .service(commits)
         .service(download);

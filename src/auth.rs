@@ -1,10 +1,10 @@
 use std::env;
 use crate::db::Database;
 use crate::errors::AuthError;
-use crate::models::{User, Token};
-use mongodb::bson::{oid::ObjectId, DateTime};
+use crate::db::{User, Token};
 use uuid::Uuid;
 use bcrypt::{hash, verify, DEFAULT_COST};
+use mongodb::bson::{oid::ObjectId, DateTime};
 
 const TOKEN_TTL_SECS: i64 = 24 * 60 * 60; // 24 hours
 

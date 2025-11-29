@@ -1,13 +1,15 @@
+
 use actix_web::{get, Result, web, HttpRequest};
 use maud::{DOCTYPE, html, Markup};
 
 use crate::db::Database;
-use mongodb::bson::{oid::ObjectId};
 use std::collections::HashMap;
 use crate::api::service;
 use crate::models::ReposQuery;
 use crate::frontend;
 use crate::frontend::{components, SERVE_PATH};
+use crate::db::Repository;
+use bson::oid::ObjectId;
 
 #[get("/")]
 pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> {
@@ -23,12 +25,12 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
         .await
         .map_err(actix_web::error::ErrorInternalServerError)?;
 
-    let repos: Vec<crate::models::Repository> = repos_all.into_iter().take(12).collect();
+    let repos: Vec<Repository> = repos_all.into_iter().take(12).collect();
 
     let mut owner_ids: Vec<ObjectId> = Vec::new();
     for r in &repos {
         if !owner_ids.contains(&r.user) {
-            owner_ids.push(r.user);
+            owner_ids.push(r.user.clone());
         }
     }
 
@@ -36,7 +38,7 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
     for uid in &owner_ids {
         match service::username_by_id(&db, uid).await {
             Ok(Some(name)) => {
-                usernames.insert(*uid, name);
+                usernames.insert(uid.clone(), name);
             }
             Ok(None) => {}
             Err(e) => {
@@ -49,8 +51,7 @@ pub async fn index(db: web::Data<Database>, req: HttpRequest) -> Result<Markup> 
         Some(token) => {
             match service::get_user_id_from_token(&db, token).await {
                 Ok(user_id) => {
-                    use mongodb::bson::doc;
-                    match db.users.find_one(doc! { "_id": &user_id }).await {
+                    match db.find_user_by_id(&user_id).await {
                         Ok(Some(u)) => Some(u.display_name),
                         _ => None,
                     }

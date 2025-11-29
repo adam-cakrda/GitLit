@@ -1,11 +1,11 @@
-use mongodb::bson::oid::ObjectId;
 use std::path::{PathBuf};
 use crate::errors::GitError;
 use crate::models::*;
 use git2::{BranchType, ObjectType, Repository, Sort};
+use bson::oid::ObjectId;
 
 pub fn repo_path(user_id: &ObjectId, repo_id: &ObjectId) -> PathBuf {
-    PathBuf::from("./repos").join(user_id.to_hex()).join(repo_id.to_hex())
+    PathBuf::from("./repos").join(user_id.to_string()).join(repo_id.to_string())
 }
 
 pub async fn init(user_id: ObjectId, repo_id: ObjectId) -> Result<PathBuf, GitError> {
@@ -66,6 +66,33 @@ pub async fn list_branches(
 
     Ok(out)
 }
+
+pub async fn delete_branch(
+    user_id: &ObjectId,
+    repo_id: &ObjectId,
+    branch_name: &String,
+) -> Result<(), GitError> {
+    let repo_path = repo_path(user_id, repo_id);
+    let repo = Repository::open_bare(&repo_path).map_err(|e| GitError::Git(e.to_string()))?;
+
+    let mut branch = repo
+        .find_branch(branch_name, BranchType::Local)
+        .map_err(|e| GitError::Git(format!("failed to find branch '{}': {}", branch_name, e)))?;
+
+    if branch.is_head() {
+        return Err(GitError::Git(format!(
+            "cannot delete branch '{}': it is the current HEAD",
+            branch_name
+        )));
+    }
+
+    branch
+        .delete()
+        .map_err(|e| GitError::Git(format!("failed to delete branch '{}': {}", branch_name, e)))?;
+
+    Ok(())
+}
+
 pub async fn list_commits(
     user_id: &ObjectId,
     repo_id: &ObjectId,

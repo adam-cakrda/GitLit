@@ -6,7 +6,7 @@ use std::fs;
 use http_auth_basic::Credentials;
 use crate::db::Database;
 use crate::repo::repo_path;
-use mongodb::bson::doc;
+use bson::oid::ObjectId;
 use bcrypt::verify;
 
 #[derive(Parser, Debug)]
@@ -51,7 +51,7 @@ impl GitConfig for WithAuth {
         };
 
         let resolved_path = if let Ok(Some(user)) = self.db.find_user_by_login(username).await {
-            match self.db.repositories.find_one(doc! { "user": &user._id, "name": reponame }).await {
+            match self.db.find_repo_by_user_and_name(&user._id, reponame).await {
                 Ok(Some(repo)) => {
                     let base = repo_path(&user._id, &repo._id);
                     if let Some(r) = rest.as_deref() {
@@ -131,29 +131,9 @@ impl GitConfig for WithAuth {
             }
         };
 
-        let user_oid = match mongodb::bson::oid::ObjectId::parse_str(&user_hex) {
-            Ok(oid) => oid,
-            Err(_) => {
-                tracing::warn!("is_public_repo: invalid user ObjectId '{}'", user_hex);
-                return false;
-            }
-        };
-        let repo_oid = match mongodb::bson::oid::ObjectId::parse_str(&repo_hex) {
-            Ok(oid) => oid,
-            Err(_) => {
-                tracing::warn!("is_public_repo: invalid repo ObjectId '{}'", repo_hex);
-                return false;
-            }
-        };
-
-        match self
-            .db
-            .repositories
-            .find_one(mongodb::bson::doc! { "_id": &repo_oid, "user": &user_oid })
-            .await
-        {
+        match self.db.find_repo_by_hex(&repo_hex).await {
             Ok(Some(repo)) => {
-                let public = !repo.is_private;
+                let public = ObjectId::parse_str(&user_hex).ok().map(|oid| oid == repo.user).unwrap_or(false) && !repo.is_private;
                 tracing::debug!(
                     "is_public_repo: repo {} (user {}) is {}",
                     repo_hex,

@@ -15,6 +15,8 @@ async fn render_tree_page(
 ) -> Result<Markup> {
     let (owner, repo) = utils::resolve_owner_repo(db, &username, &reponame).await?;
     let user_display = utils::token_display(db, req).await;
+    let conn = req.connection_info();
+    let clone_url = format!("{}://{}/{}/{}.git", conn.scheme(), conn.host(), owner.username, repo.name);
 
     let rev_owned = rev_in.clone();
     let (rev, branch_opt_owned): (String, Option<String>) = if utils::is_hex_hash(&rev_in) {
@@ -63,6 +65,21 @@ async fn render_tree_page(
                             a class="commits-btn" href={(format!("/{}/{}/commits/{}", owner.username, repo.name, reference))} {
                                 "Commits "
                                 span class="badge" { (total_commits) }
+                            }
+                            div class="repo-actions" {
+                                div class="code-menu" {
+                                    button class="action-btn menu-trigger" type="button" { "Code" }
+                                    div class="code-popup" {
+                                        div class="clone-field" {
+                                            input type="text" readonly value=(clone_url.clone()) {}
+                                        }
+                                        @if utils::is_hex_hash(&reference) {
+                                            a class="download-zip" href={(format!("/api/v1/download?id={}&commit={}", repo._id, reference))} { "Download ZIP" }
+                                        } @else {
+                                            a class="download-zip" href={(format!("/api/v1/download?id={}&branch={}", repo._id, reference))} { "Download ZIP" }
+                                        }
+                                    }
+                                }
                             }
                         }
                         (utils::breadcrumbs(&owner.username, &repo.name, reference, path_opt))

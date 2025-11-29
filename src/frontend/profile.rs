@@ -1,6 +1,5 @@
 use actix_web::{get, web, HttpRequest, Responder};
 use maud::{html, Markup, DOCTYPE};
-use mongodb::bson::doc;
 
 use crate::db::Database;
 use crate::frontend::components;
@@ -8,6 +7,7 @@ use crate::frontend::repo::utils::{page_shell};
 use crate::frontend::SERVE_PATH;
 use crate::models::*;
 use crate::api::service;
+use crate::db;
 
 fn profile_head() -> Markup {
     html! {
@@ -16,7 +16,7 @@ fn profile_head() -> Markup {
     }
 }
 
-fn profile_page(user: &User, repos: &[Repository], requester: Option<&str>) -> Markup {
+fn profile_page(user: &db::User, repos: &[db::Repository], requester: Option<&str>) -> Markup {
     let display = if user.display_name.is_empty() { &user.username } else { &user.display_name };
     page_shell(
         &format!("{} ({}) · GitLit", display, user.username),
@@ -68,12 +68,10 @@ fn profile_page(user: &User, repos: &[Repository], requester: Option<&str>) -> M
 async fn requester_display(db: &Database, req: &HttpRequest) -> Option<String> {
     match crate::frontend::token_from_req(req) {
         Some(token) => match service::get_user_id_from_token(db, token).await {
-            Ok(user_id) => {
-                match db.users.find_one(doc!{ "_id": &user_id }).await {
-                    Ok(Some(u)) => Some(u.display_name),
-                    _ => None,
-                }
-            }
+            Ok(user_id) => match db.find_user_by_id(&user_id).await {
+                Ok(Some(u)) => Some(u.display_name),
+                _ => None,
+            },
             Err(_) => None,
         },
         None => None,
@@ -105,17 +103,12 @@ pub async fn user_profile(
         Some(tok) => service::get_user_id_from_token(&db, tok).await.ok(),
         None => None,
     };
-    let filter = if requester_id == Some(user._id) {
-        doc!{ "user": &user._id }
-    } else {
-        doc!{ "user": &user._id, "is_private": false }
-    };
 
-    use futures_util::TryStreamExt;
-    let cursor = db.repositories.find(filter).sort(doc!{ "updated_at": -1 }).await
-        .map_err(actix_web::error::ErrorInternalServerError)?;
-    let repos: Vec<Repository> = cursor.try_collect().await
-        .map_err(actix_web::error::ErrorInternalServerError)?;
+    let repos: Vec<db::Repository> = service::repo_list(
+        &db,
+        requester_id.clone(),
+        ReposQuery { owner: Some(user.username.clone()), filter: Some("updated".to_string()), q: None }
+    ).await.map_err(actix_web::error::ErrorInternalServerError)?;
 
     let requester_name = requester_display(&db, &req).await;
 

@@ -4,6 +4,7 @@ mod components;
 mod auth;
 mod repo;
 mod profile;
+mod errors;
 
 use index::*;
 use actix_files::Files;
@@ -38,7 +39,11 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(repo::commits)
         .service(repo::new::get)
         .service(repo::new::post)
+        .service(repo::branches::list)
+        .service(repo::branches::do_delete)
+        .service(repo::branches::confirm_delete)
 
-        .service(profile::user_profile);
+        .service(profile::user_profile)
 
+        .default_service(web::to(errors::not_found));
 }

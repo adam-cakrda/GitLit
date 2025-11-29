@@ -11,7 +11,7 @@ pub struct NewRepoForm {
     pub name: String,
     pub description: Option<String>,
     pub visibility: Option<String>,
-    pub init_readme: Option<String>, //TODO: INIT README
+    //pub init_readme: Option<String>, TODO: INIT README
 }
 
 #[post("/new")]
@@ -45,7 +45,7 @@ pub async fn post(db: web::Data<Database>, req: HttpRequest, form: web::Form<New
         is_private,
     };
 
-    match service::repo_create(&db, user_id, payload).await {
+    match service::repo_create(&db, user_id.clone(), payload).await {
         Ok(repo) => {
             let owner = service::username_by_id(&db, &user_id).await.ok().flatten().unwrap_or_else(|| "me".to_string());
             let location = format!("/{}/{}", owner, repo.name);

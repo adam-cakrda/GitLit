@@ -1,10 +1,12 @@
-use mongodb::bson::{oid::ObjectId};
 use crate::db::Database;
 use crate::errors::*;
 use crate::models::*;
-use mongodb::bson::doc;
 use tokio::fs;
 use std::io::Write;
+use mongodb::bson::DateTime;
+use bson::doc;
+use bson::oid::ObjectId;
+use crate::db::Repository;
 
 // AUTH
 pub async fn auth_register(db: &Database, username: String, email: String, password: String) -> Result<(), AuthError> {
@@ -20,23 +22,15 @@ pub async fn auth_logout(db: &Database, token: String) -> Result<(), AuthError> 
 }
 
 // HELPERS
-pub async fn resolve_repo_by_id(db: &Database, id_hex: &str) -> Result<Repository, String> {
-    use mongodb::bson::oid::ObjectId;
-    let oid = ObjectId::parse_str(id_hex).map_err(|_| "invalid id".to_string())?;
-    db.repositories
-        .find_one(doc! { "_id": &oid })
-        .await
-        .map_err(|e| e.to_string())?
-        .ok_or_else(|| "repository not found".to_string())
-}
+
 
 pub async fn get_user_id_from_token(db: &Database, token: String) -> Result<ObjectId, AuthError> {
-    crate::auth::auth(db, token).await
+    let id = crate::auth::auth(db, token).await?;
+    Ok(id)
 }
 
 pub async fn username_by_id(db: &Database, user_id: &ObjectId) -> Result<Option<String>, String> {
-    use mongodb::bson::doc;
-    match db.users.find_one(doc! { "_id": user_id }).await {
+    match db.find_user_by_id(user_id).await {
         Ok(Some(user)) => Ok(Some(user.username)),
         Ok(None) => Ok(None),
         Err(e) => Err(e.to_string()),
@@ -45,22 +39,20 @@ pub async fn username_by_id(db: &Database, user_id: &ObjectId) -> Result<Option<
 
 // REPOS
 pub async fn repo_create(db: &Database, user_id: ObjectId, payload: CreateRepoRequest) -> Result<Repository, String> {
-    use mongodb::bson::{doc, DateTime};
-    use mongodb::bson::oid::ObjectId;
 
     let name = payload.name.trim().to_string();
     if name.is_empty() {
         return Err("name must not be empty".into());
     }
-
-    match db.repositories.find_one(doc! { "user": &user_id, "name": &name }).await {
-        Ok(Some(_)) => return Err("already exists".into()),
-        Ok(None) => {},
-        Err(e) => return Err(e.to_string()),
+    
+    if db.is_repo_exists(&user_id, &name).await.map_err(|e| e.to_string())? == true {
+        return Err("already exists".into())
     }
+    
+   
 
-    let now = DateTime::now();
-    let repo_id = ObjectId::new();
+    let now: DateTime = DateTime::now();
+    let repo_id = bson::oid::ObjectId::new();
     let repo_doc = Repository {
         _id: repo_id,
         user: user_id,
@@ -73,8 +65,9 @@ pub async fn repo_create(db: &Database, user_id: ObjectId, payload: CreateRepoRe
     };
 
     db.create_repository(repo_doc.clone()).await.map_err(|e| e.to_string())?;
-    if let Err(e) = crate::repo::init(repo_doc.user, repo_doc._id).await {
-        let _ = db.repositories.delete_one(doc! { "_id": &repo_doc._id }).await;
+
+    if let Err(e) = crate::repo::init(repo_doc.user.clone(), repo_doc._id.clone()).await {
+        let _ = db.delete_repository_by_id(&repo_doc._id).await;
         return Err(e.to_string());
     }
 
@@ -82,7 +75,11 @@ pub async fn repo_create(db: &Database, user_id: ObjectId, payload: CreateRepoRe
 }
 
 pub async fn repo_delete(db: &Database, requester: ObjectId, repo_id_hex: &str) -> Result<(), String> {
-    let repository = resolve_repo_by_id(db, repo_id_hex).await?;
+    let repository = db
+        .find_repo_by_hex(repo_id_hex)
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "not found".to_string())?;
     if repository.user != requester {
         return Err("forbidden".into());
     }
@@ -94,8 +91,8 @@ pub async fn repo_delete(db: &Database, requester: ObjectId, repo_id_hex: &str) 
         }
     }
 
-    match db.repositories.delete_one(doc! { "_id": &repository._id }).await {
-        Ok(res) if res.deleted_count == 1 => Ok(()),
+    match db.delete_repository_by_id(&repository._id).await {
+        Ok(1) => Ok(()),
         Ok(_) => Err("failed to delete repository".into()),
         Err(e) => Err(e.to_string()),
     }
@@ -106,7 +103,7 @@ pub async fn repo_list(
     requester_user_id: Option<ObjectId>,
     query: ReposQuery,
 ) -> Result<Vec<Repository>, String> {
-    use futures_util::TryStreamExt;
+    
     use mongodb::bson::doc;
 
     let owner_user_id: Option<ObjectId> = if let Some(owner_username) = &query.owner {
@@ -128,7 +125,7 @@ pub async fn repo_list(
     }
 
     let privacy_filter = if let Some(owner_id) = owner_user_id {
-        let can_see_private = requester_user_id.map_or(false, |r| r == owner_id);
+        let can_see_private = requester_user_id.as_ref() == Some(&owner_id);
         if can_see_private {
             doc! { "user": &owner_id }
         } else {
@@ -155,23 +152,49 @@ pub async fn repo_list(
         Some("updated") | _ => doc! { "updated_at": -1 },
     };
 
-    let cursor = db.repositories.find(filter).sort(sort_doc).await.map_err(|e| e.to_string())?;
-    let repos: Vec<Repository> = cursor.try_collect().await.map_err(|e| e.to_string())?;
+    let repos = db.find_repos_with_filter_sort(filter, sort_doc).await.map_err(|e| e.to_string())?;
     Ok(repos)
+}
+
+async fn resolve_repo_by_id(db: &Database, repo_id_hex: &str) -> Result<Repository, String> {
+    db.find_repo_by_hex(repo_id_hex)
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "not found".to_string())
 }
 
 // GIT
 pub async fn git_branches(
     db: &Database,
     requester_user_id: Option<ObjectId>,
-    repo_id_hex: &str,
+    id: &String,
 ) -> Result<Vec<Branch>, String> {
-    let repo = resolve_repo_by_id(db, repo_id_hex).await?;
-    if repo.is_private && Some(repo.user) != requester_user_id {
+    let repo = resolve_repo_by_id(db, id).await?;
+    let can_see = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_see {
         return Err("forbidden".into());
     }
     crate::repo::list_branches(&repo.user, &repo._id).await.map_err(|e| e.to_string())
 }
+
+pub async fn git_remove_branch(
+    db: &Database,
+    requester_user_id: Option<ObjectId>,
+    id: &String,
+    branch: &String,
+) -> Result<(), String> {
+    let repo = resolve_repo_by_id(db, id).await?;
+
+    let can_edit = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_edit {
+        return Err("forbidden".into());
+    }
+
+    crate::repo::delete_branch(&repo.user, &repo._id, branch)
+        .await
+        .map_err(|e| e.to_string())
+}
+
 
 pub async fn git_content(
     db: &Database,
@@ -181,7 +204,8 @@ pub async fn git_content(
     use base64::Engine;
 
     let repo = resolve_repo_by_id(db, &query.id).await?;
-    if repo.is_private && Some(repo.user) != requester_user_id {
+    let can_see = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_see {
         return Err("forbidden".into());
     }
 
@@ -214,7 +238,8 @@ pub async fn git_commits(
     query: CommitsQuery,
 ) -> Result<Vec<CommitInfo>, String> {
     let repo = resolve_repo_by_id(db, &query.id).await?;
-    if repo.is_private && Some(repo.user) != requester_user_id {
+    let can_see = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_see {
         return Err("forbidden".into());
     }
 
@@ -235,7 +260,8 @@ pub async fn git_download(
     use zip::CompressionMethod;
 
     let repo = resolve_repo_by_id(db, &query.id).await?;
-    if repo.is_private && Some(repo.user) != requester_user_id {
+    let can_see = requester_user_id == Some(repo.user.clone());
+    if repo.is_private && !can_see {
         return Err("forbidden".into());
     }
 

@@ -15,6 +15,8 @@ pub async fn index(
     let (username, reponame) = path.into_inner();
     let (owner, repo) = utils::resolve_owner_repo(&db, &username, &reponame).await?;
     let user_display = utils::token_display(&db, &req).await;
+    let conn = req.connection_info();
+    let clone_url = format!("{}://{}/{}/{}.git", conn.scheme(), conn.host(), owner.username, repo.name);
 
     let default = utils::default_ref(&db, &owner, &repo).await;
 
@@ -61,12 +63,29 @@ pub async fn index(
                                             }
                                         }
                                     }
+                                    li {
+                                        hr {};
+                                        a class="see-all-branches" href={(format!("/{}/{}/branches", owner.username, repo.name))} {
+                                            "See all branches"
+                                        }
+                                    }
                                 }
                             }
                             div class="commit-info" { "" }
                             a class="commits-btn" href={(format!("/{}/{}/commits/{}", owner.username, repo.name, default))} {
                                 "Commits "
                                 span class="badge" { (total_commits) }
+                            }
+                            div class="repo-actions" {
+                                div class="code-menu" {
+                                    button class="action-btn menu-trigger" type="button" { "Code" }
+                                    div class="code-popup" {
+                                        div class="clone-field" {
+                                            input type="text" readonly value=(clone_url.clone()) {}
+                                        }
+                                        a class="download-zip" href={(format!("/api/v1/download?id={}&branch={}", repo._id, default))} { "Download as ZIP" }
+                                    }
+                                }
                             }
                         }
                         (utils::breadcrumbs(&owner.username, &repo.name, &default, None))

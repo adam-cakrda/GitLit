@@ -1,4 +1,5 @@
-use mongodb::bson::{oid::ObjectId, DateTime};
+use mongodb::bson::DateTime;
+use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, utoipa::ToSchema)]
@@ -11,7 +12,7 @@ pub struct Repository {
     pub description: String,
     pub is_private: bool,
     #[schema(value_type = Option<String>)]
-    pub forked_from: Option<ObjectId>,
+    pub forked_from: Option<String>,
     #[schema(value_type = String, format = DateTime, example = "2024-01-01T12:00:00Z")]
     pub created_at: DateTime,
     #[schema(value_type = String, format = DateTime, example = "2024-01-01T12:00:00Z")]
@@ -43,3 +44,6 @@ pub struct User {
     #[schema(value_type = String, format = DateTime)]
     pub created_at: DateTime,
 }
+
+
+
