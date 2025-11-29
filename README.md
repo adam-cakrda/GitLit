@@ -58,6 +58,7 @@ Build GitLit from the source and install dependencies:
       - [x] Register
       - [x] Login
       - [x] Logout
+      - [x] Captcha
       - [ ] 2fa
           - [ ] Email
           - [ ] Authenticator
@@ -75,7 +76,6 @@ Build GitLit from the source and install dependencies:
       - [x] Documentation - [gitlit.qzz.io/api/docs/](https://gitlit.qzz.io/api/docs/)
       - [x] v1
           - [x] login
-          - [x] register
           - [x] logout
           - [x] create
           - [x] delete

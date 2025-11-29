@@ -23,7 +23,6 @@ pub async fn auth_logout(db: &Database, token: String) -> Result<(), AuthError> 
 
 // HELPERS
 
-
 pub async fn get_user_id_from_token(db: &Database, token: String) -> Result<ObjectId, AuthError> {
     let id = crate::auth::auth(db, token).await?;
     Ok(id)

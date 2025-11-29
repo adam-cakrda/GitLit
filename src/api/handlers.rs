@@ -92,34 +92,6 @@ pub async fn logout(db: web::Data<Database>, req: HttpRequest) -> impl Responder
     }
 }
 
-#[utoipa::path(
-    post,
-    path = "/api/v1/register",
-    request_body = RegisterRequest,
-    responses(
-        (status = 201, description = "User registered", body = OkResponse),
-        (status = 409, description = "Username or email already exists")
-    ),
-    tag = "auth"
-)]
-#[post("/api/v1/register")]
-pub async fn register(db: web::Data<Database>, payload: web::Json<RegisterRequest>) -> impl Responder {
-    match service::auth_register(
-        &db,
-        payload.username.clone(),
-        payload.email.clone(),
-        payload.password.clone(),
-    )
-        .await
-    {
-        Ok(()) => HttpResponse::Created().json(OkResponse { ok: true }),
-        Err(AuthError::InvalidCredentials) => HttpResponse::Conflict().json(error_message(
-            "username or email already exists",
-        )),
-        Err(e) => to_http_500(e),
-    }
-}
-
 // ----------------- repos -----------------
 
 #[utoipa::path(
@@ -418,7 +390,6 @@ pub async fn download(
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(login)
         .service(logout)
-        .service(register)
         .service(create_repo)
         .service(delete_repo)
         .service(list_repos)

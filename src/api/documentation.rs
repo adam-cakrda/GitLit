@@ -3,7 +3,6 @@
     paths(
         crate::api::login,
         crate::api::logout,
-        crate::api::register,
         crate::api::create_repo,
         crate::api::delete_repo,
         crate::api::list_repos,

@@ -8,6 +8,7 @@ use crate::frontend::components;
 use crate::frontend::SERVE_PATH;
 use std::env;
 use crate::errors::AuthError;
+use reqwest::Client;
 
 #[derive(serde::Deserialize)]
 struct ErrorQuery { error: Option<String> }
@@ -23,6 +24,8 @@ pub struct RegisterForm {
     pub username: String,
     pub email: String,
     pub password: String,
+    #[serde(rename = "g-recaptcha-response")]
+    pub recaptcha_response: Option<String>,
 }
 
 async fn redirect_if_logged(db: &Database, req: &HttpRequest) -> Option<HttpResponse> {
@@ -35,6 +38,51 @@ async fn redirect_if_logged(db: &Database, req: &HttpRequest) -> Option<HttpResp
         }
     }
     None
+}
+
+fn recaptcha_enabled() -> bool {
+    env::var("RECAPTCHA_ENABLED").unwrap_or_else(|_| "false".to_string()) == "true"
+}
+
+fn recaptcha_site_key() -> Option<String> {
+    env::var("RECAPTCHA_SITE_KEY").ok()
+}
+
+async fn verify_recaptcha_token(token: &str, remote_ip: Option<&str>) -> bool {
+    let secret = match env::var("RECAPTCHA_SECRET") {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+
+    #[derive(serde::Deserialize)]
+    struct VerifyResp {
+        success: bool,
+        #[allow(dead_code)]
+        #[serde(default)]
+        error_codes: Option<Vec<String>>,
+    }
+
+    let client = Client::new();
+    let mut form = vec![
+        ("secret", secret),
+        ("response", token.to_string()),
+    ];
+    if let Some(ip) = remote_ip {
+        form.push(("remoteip", ip.to_string()));
+    }
+
+    match client
+        .post("https://www.google.com/recaptcha/api/siteverify")
+        .form(&form)
+        .send()
+        .await
+    {
+        Ok(resp) => match resp.json::<VerifyResp>().await {
+            Ok(v) => v.success,
+            Err(_) => false,
+        },
+        Err(_) => false,
+    }
 }
 
 #[get("/login")]
@@ -123,6 +171,11 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest, query: web:
         html lang="en" {
             (components::head("Register - GitLit", html! {
                 link rel="stylesheet" href=(SERVE_PATH.to_string() + "/auth.css") {}
+                @if recaptcha_enabled() {
+                    @if let Some(key) = recaptcha_site_key() {
+                        script src="https://www.google.com/recaptcha/api.js" { }
+                    }
+                }
             }))
             @if env::var("ALLOW_REGISTER").unwrap_or_else(|_| "false".to_string()) != "true" {
                 (components::body(html! {
@@ -169,6 +222,13 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest, query: web:
                                         a href="/privacy" { "Privacy Policy" }
                                     }
                                 }
+                                @if recaptcha_enabled() {
+                                    @if let Some(key) = recaptcha_site_key() {
+                                        div class="form-group" {
+                                            div class="g-recaptcha" data-sitekey=(key) {}
+                                        }
+                                    }
+                                }
                                 button type="submit" class="auth-btn" { "Create account" }
                             }
                             div class="auth-footer" {
@@ -186,6 +246,21 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest, query: web:
 
 #[post("/register")]
 pub async fn post_register(db: web::Data<Database>, form: web::Form<RegisterForm>) -> Result<HttpResponse> {
+    if recaptcha_enabled() {
+        let token_opt = form.recaptcha_response.as_deref();
+        if token_opt.is_none() {
+            return Ok(HttpResponse::SeeOther()
+                .insert_header((LOCATION, "/register?error=Missing%20captcha"))
+                .finish());
+        }
+        let remote_ip = None::<&str>;
+        if !verify_recaptcha_token(token_opt.unwrap(), remote_ip).await {
+            return Ok(HttpResponse::SeeOther()
+                .insert_header((LOCATION, "/register?error=Captcha%20verification%20failed"))
+                .finish());
+        }
+    }
+
     match service::auth_register(&db, form.username.clone(), form.email.clone(), form.password.clone()).await {
         Ok(()) => {
             Ok(HttpResponse::SeeOther()
