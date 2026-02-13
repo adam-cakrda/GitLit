@@ -2,7 +2,6 @@ mod helpers;
 mod models;
 
 pub use models::*;
-pub use helpers::*;
 
 use mongodb::{Client, Collection};
 use std::env;

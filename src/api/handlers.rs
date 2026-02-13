@@ -394,7 +394,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(delete_repo)
         .service(list_repos)
         .service(branches)
-        .service(delete_branch)       
+        .service(delete_branch)
         .service(content)
         .service(commits)
         .service(download);

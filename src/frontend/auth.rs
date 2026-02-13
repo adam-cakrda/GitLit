@@ -62,25 +62,33 @@ async fn verify_recaptcha_token(token: &str, remote_ip: Option<&str>) -> bool {
         error_codes: Option<Vec<String>>,
     }
 
-    let client = Client::new();
-    let mut form = vec![
-        ("secret", secret),
-        ("response", token.to_string()),
-    ];
-    if let Some(ip) = remote_ip {
-        form.push(("remoteip", ip.to_string()));
+    #[derive(serde::Serialize)]
+    struct RecaptchaRequest {
+        secret: String,
+        response: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        remoteip: Option<String>,
     }
+
+    let client = Client::new();
+    let req = RecaptchaRequest {
+        secret,
+        response: token.to_string(),
+        remoteip: remote_ip.map(|s| s.to_string()),
+    };
 
     match client
         .post("https://www.google.com/recaptcha/api/siteverify")
-        .form(&form)
+        .json(&req)
         .send()
         .await
     {
-        Ok(resp) => match resp.json::<VerifyResp>().await {
-            Ok(v) => v.success,
-            Err(_) => false,
-        },
+        Ok(resp) => {
+            match resp.json::<VerifyResp>().await {
+                Ok(v) => v.success,
+                Err(_) => false,
+            }
+        }
         Err(_) => false,
     }
 }
@@ -172,7 +180,7 @@ pub async fn get_register(db: web::Data<Database>, req: HttpRequest, query: web:
             (components::head("Register - GitLit", html! {
                 link rel="stylesheet" href=(SERVE_PATH.to_string() + "/auth.css") {}
                 @if recaptcha_enabled() {
-                    @if let Some(key) = recaptcha_site_key() {
+                    @if let Some(_key) = recaptcha_site_key() {
                         script src="https://www.google.com/recaptcha/api.js" { }
                     }
                 }

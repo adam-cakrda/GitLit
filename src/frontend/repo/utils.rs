@@ -72,7 +72,7 @@ pub fn render_readme_html(md_bytes: &[u8]) -> Option<Markup> {
         Err(_) => return None,
     };
 
-    let mut options = comrak::ComrakOptions::default();
+    let mut options = comrak::Options::default();
     options.extension.tasklist = true;
     let html = comrak::markdown_to_html(md, &options);
     let clean = ammonia::Builder::default()
