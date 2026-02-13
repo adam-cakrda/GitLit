@@ -1,6 +1,7 @@
 use clap::Parser;
-use git_http_backend::{AuthInput, GitConfig, GitOperation, actix::handler::ActixGitHttp};
-use std::path::PathBuf;
+use git_http_backend::config::{DefaultGitHttpConfig};
+use git_http_backend::{GitConfig, GitOperation};
+use std::path::{Path, PathBuf};
 use tracing;
 use std::fs;
 use http_auth_basic::Credentials;
@@ -21,13 +22,14 @@ pub struct ActixServerArgs {
 }
 
 #[derive(Clone, Debug)]
-pub struct WithAuth {
-    pub inner: ActixGitHttp,
+pub struct MyGitHttpConfig {
+    pub inner: DefaultGitHttpConfig,
     pub db: Database,
 }
 
+
 #[async_trait::async_trait]
-impl GitConfig for WithAuth {
+impl GitConfig for MyGitHttpConfig {
     async fn rewrite(&self, original_path: String) -> PathBuf {
         let trimmed = original_path.trim_start_matches('/');
         let segments: Vec<&str> = trimmed.split('/').collect();
@@ -71,8 +73,8 @@ impl GitConfig for WithAuth {
         fs::canonicalize(&resolved_path).unwrap_or(resolved_path)
     }
 
-    async fn authenticate(&self, auth: AuthInput) -> Result<(), ()> {
-        if let Some(h) = auth.authorization {
+    async fn authenticate(&self, auth: Option<String>) -> Result<(), ()> {
+        if let Some(h) = auth {
             if let Ok(credentials) = Credentials::from_header(h.clone()) {
                 let login = credentials.user_id;
                 let password = credentials.password;
@@ -114,7 +116,7 @@ impl GitConfig for WithAuth {
         }
     }
 
-    async fn is_public_repo(&self, repo_path: &std::path::Path) -> bool {
+    async fn is_public(&self, repo_path: &Path) -> bool {
         tracing::debug!("Checking if repo is public: {:?}", repo_path);
         let components: Vec<String> = repo_path
             .components()
